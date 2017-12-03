@@ -50,9 +50,23 @@ b0 <- 10
 b1 <- 2
 
 # small sample size
-x <- runif(n, 0, 10)
-eps <- 3 * rnorm(n)
-y <- b0 - b1 * (x - 5)^2 + eps
+x_small <- runif(n_small, 0, 10)
+eps_small <- 3 * rnorm(n_small)
+y_small <- b0 - b1 * (x_small - 5)^2 + eps_small
+
+
+# med sample size
+x_med <- runif(n_small, 0, 10)
+eps_med <- 3 * rnorm(n_med)
+y_med <- b0 - b1 * (x_med - 5)^2 + eps_med
+
+# lrg sample size
+x_large <- runif(n_large, 0, 10)
+eps_large <- 3 * rnorm(n_large)
+y_large <- b0 - b1 * (x_large - 5)^2 + eps_large
+
+# part c, for each simulation:
+# predict y-hat at several different locations using a confidence interval.
 
 ```
 
