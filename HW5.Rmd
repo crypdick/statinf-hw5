@@ -47,6 +47,7 @@ set.seed(1)
 n_small <- 20
 n_med <- 100
 n_large <- 5000
+locations <- c(-10:10)*10
 ```
 
 
@@ -73,8 +74,7 @@ eps_largepoly <- 3 * rnorm(n_large)
 y_largepoly <- b0 - b1 * (x_largepoly - 5)^2 + eps_largepoly
 
 # part c, for each simulation:
-# predict y-hat at several different locations using a confidence interval.
-locations <- c(-100, -20, 0, 20, 100)
+# predict y-hat at several different locations using a confidence interval
 locations_smallpoly <- data.frame(x_smallpoly = locations)
 
 lm_smallpoly <- lm(y_smallpoly ~ x_smallpoly)
@@ -148,22 +148,21 @@ b1 <- 2
 # small sample size
 x_smallexp <- runif(n_small, 0, 10)
 eps_smallexp <- 3 * rnorm(n_small)
-y_smallexp <- b0 - b1 * exp(x_smallexp)^2 + eps_smallexp
+y_smallexp <- b0 - b1 * exp(x_smallexp) + eps_smallexp
 
 
 # med sample size
 x_medexp <- runif(n_med, 0, 10)
 eps_medexp <- 3 * rnorm(n_med)
-y_medexp <- b0 - b1 * (x_medexp - 5)^2 + eps_medexp
+y_medexp <- b0 - b1 * exp(x_medexp) + eps_medexp
 
 # lrg sample size
 x_largeexp <- runif(n_large, 0, 10)
 eps_largeexp <- 3 * rnorm(n_large)
-y_largeexp <- b0 - b1 * (x_largeexp - 5)^2 + eps_largeexp
+y_largeexp <- b0 - b1 * exp(x_largeexp) + eps_largeexp
 
 # part c, for each simulation:
 # predict y-hat at several different locations using a confidence interval.
-locations <- c(-100, -20, 0, 20, 100)
 locations_smallexp <- data.frame(x_smallexp = locations)
 
 lm_smallexp <- lm(y_smallexp ~ x_smallexp)
@@ -230,7 +229,92 @@ TODO
 
 
 ## **SINUSOIDAL**
+```{r}
+# TODO: randomize these for part e
+b0 <- 0
+b1 <- 20*pi
 
+# small sample size
+x_smallsine <- runif(n_small, 0, 10)
+eps_smallsine <- 3 * rnorm(n_small)
+y_smallsine <- b0 + b1 * sin(x_smallsine) + eps_smallsine
+
+
+# med sample size
+x_medsine <- runif(n_med, 0, 10)
+eps_medsine <- 3 * rnorm(n_med)
+y_medsine <- b0 - b1 * sin(x_medsine) + eps_medsine
+
+# lrg sample size
+x_largesine <- runif(n_large, 0, 10)
+eps_largesine <- 3 * rnorm(n_large)
+y_largesine <- b0 - b1 * sin(x_largesine) + eps_largesine
+
+# part c, for each simulation:
+# predict y-hat at several different locations using a confidence interval.
+locations_smallsine <- data.frame(x_smallsine = locations)
+
+lm_smallsine <- lm(y_smallsine ~ x_smallsine)
+yhat_smallsine <- predict.lm(lm_smallsine, newdata=locations_smallsine, interval="confidence") # predict y_hat
+
+summary(lm_smallsine)$coef  # model coefficients
+(confint(lm_smallsine))
+(anova(lm_smallsine)$'Mean Sq'[2]) # MSE
+(summary(lm_smallsine)$coeff[,4])  # p-vals of our coeffs
+```
+TODO beta p-vals
+
+```{r}
+locations_medsine <- data.frame(x_medsine = locations)
+lm_medsine <- lm(y_medsine ~ x_medsine)
+yhat_medsine <- predict.lm(lm_medsine, newdata=locations_medsine, interval="confidence")
+(yhat_medsine)
+summary(lm_medsine)$coef
+(confint(lm_medsine))
+(anova(lm_medsine)$'Mean Sq'[2])
+(summary(lm_medsine)$coeff[,4])
+```
+TODO beta p-vals
+
+
+```{r}
+locations_largesine <- data.frame(x_largesine = locations)
+lm_largesine <- lm(y_largesine ~ x_largesine)
+yhat_largesine <- predict.lm(lm_largesine, newdata=locations_largesine, interval="confidence")
+```
+
+```{r}
+summary(lm_largesine)$coef
+(confint(lm_largesine))
+(anova(lm_largesine)$'Mean Sq'[2])
+(summary(lm_largesine)$coeff[,4])
+```
+TODO coeff significance
+
+
+```{r}
+yhat_smallsine <- data.frame(yhat_smallsine)
+
+ggplot(yhat_smallsine, aes(x =locations_smallsine$x_smallsine, y = fit)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymax = yhat_smallsine$upr, ymin = yhat_smallsine$lwr))
+
+
+yhat_medsine <- data.frame(yhat_medsine)
+
+ggplot(yhat_medsine, aes(x =locations_medsine$x_med, y = fit)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymax = yhat_medsine$upr, ymin = yhat_medsine$lwr))
+
+
+yhat_largesine <- data.frame(yhat_largesine)
+
+ggplot(yhat_largesine, aes(x =locations_largesine$x_large, y = fit)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymax = yhat_largesine$upr, ymin = yhat_largesine$lwr))
+```
+Changing the sample size changed:
+TODO
 
 ## PART E
 
