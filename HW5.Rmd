@@ -36,7 +36,22 @@ require(ggplot2)
     e. After you have experimented with the effects of different model structures, true parameter values, and sample sizes, let's repeat the simulation but test yourself to see whether you can detect non-linearity.
         i. Have R randomly choose whether to simulate data from a true linear model or a true nonlinear model.
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
-        iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)
+        iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)  
+        
+```{r}
+#part e, name the normal func & nonnormal func & randomly call it
+my.simulation <- function(n, b0, b1){
+  choices.simulation <- c("normal", "nonnormal")
+  random.choice <- sample(choices.simulation, 1)
+  if (random.choice == "normal"){
+    return(normal_func)
+  }
+  else{
+    return(nonnormal_func)
+  }
+}
+```
+        
 
 __Aside:__ Many of the issues you end up facing with a nonlinear relationship can also be seen if an important predictor is excluded from the model. If you have extra time, feel free to play with this issue as well (optional).
 
