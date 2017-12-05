@@ -9,6 +9,12 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+```{r}
+require(ggplot2)
+```
+
+
 # Guidelines
 
 + This is a group project. You may work in groups with up to 6 people. You only need to turn in one homework assignment for each group, but make sure that everyone’s name is listed on the assignment. 
@@ -20,12 +26,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 1.	Nonlinear relationship
     a.	Simulate data for a variety of different non-linear relationships (e.g. polynomial, exponential, sinusoidal).
-```{r}
-x1 <- rnorm(100)
-x2 <- x1^2
-
-```
-
     b.	Try simulations with a small sample size (e.g. 20), a medium sample size (e.g. n= 100), and a large sample size (e.g. n = 5000). 
     c.	For each simulation, 
         i.	Predict y-hat at several different locations using a confidence interval.
@@ -42,6 +42,7 @@ __Aside:__ Many of the issues you end up facing with a nonlinear relationship ca
 
 
 ```{r}
+set.seed(1)
 # Sample code to get started
 n_small <- 20
 n_med <- 100
@@ -56,7 +57,7 @@ y_small <- b0 - b1 * (x_small - 5)^2 + eps_small
 
 
 # med sample size
-x_med <- runif(n_small, 0, 10)
+x_med <- runif(n_med, 0, 10)
 eps_med <- 3 * rnorm(n_med)
 y_med <- b0 - b1 * (x_med - 5)^2 + eps_med
 
@@ -67,8 +68,50 @@ y_large <- b0 - b1 * (x_large - 5)^2 + eps_large
 
 # part c, for each simulation:
 # predict y-hat at several different locations using a confidence interval.
+locations <- c(-100, -20, 0, 20, 100)
+locations_small <- data.frame(x_small = locations)
 
+lm_small <- lm(y_small ~ x_small)
+yhat_small <- predict.lm(lm_small, newdata=locations_small, interval="confidence")
+
+summary(lm_small)$coef
+(confint(lm_small))
+(anova(lm_small)$'Mean Sq'[2])
+(summary(lm_small)$coeff[,4])
 ```
+Neither of the betas are significant, since they both have p values > 0.05.
+
+```{r}
+yhat_small <- data.frame(yhat_small)
+
+ggplot(yhat_small, aes(x =locations_small$x_small, y = fit)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymax = yhat_small$upr, ymin = yhat_small$lwr))
+```
+
+
+```{r}
+locations_med <- data.frame(x_med = locations)
+lm_med <- lm(y_med ~ x_med)
+yhat_med <- predict.lm(lm_med, newdata=locations_med, interval="confidence")
+(yhat_med)
+summary(lm_med)$coef
+(confint(lm_med))
+(anova(lm_med)$'Mean Sq'[2])
+(summary(lm_med)$coeff[,4])
+```
+Again, neither of the betas are significant, since they both have p values > 0.05.
+```{r}
+locations_large <- data.frame(x_large = locations)
+lm_large <- lm(y_large ~ x_large)
+yhat_large <- predict.lm(lm_large, newdata=locations_large, interval="confidence")
+(yhat_large)
+summary(lm_large)$coef
+(confint(lm_large))
+(anova(lm_large)$'Mean Sq'[2])
+(summary(lm_large)$coeff[,4])
+```
+This time, both coefficients are very significant!
 
 2.	Non-normal errors
     a.	Simulate errors from a variety of different non-normal distributions (e.g. gamma, poisson). Make sure to shift the errors over so that they are still centered at 0.
