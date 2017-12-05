@@ -40,7 +40,7 @@ require(ggplot2)
 
 __Aside:__ Many of the issues you end up facing with a nonlinear relationship can also be seen if an important predictor is excluded from the model. If you have extra time, feel free to play with this issue as well (optional).
 
-
+## **POLYNOMIAL** 
 ```{r}
 set.seed(1)
 # Sample code to get started
@@ -89,7 +89,7 @@ ggplot(yhat_small, aes(x =locations_small$x_small, y = fit)) +
   geom_errorbar(aes(ymax = yhat_small$upr, ymin = yhat_small$lwr))
 ```
 
-
+TODO
 ```{r}
 locations_med <- data.frame(x_med = locations)
 lm_med <- lm(y_med ~ x_med)
@@ -101,17 +101,43 @@ summary(lm_med)$coef
 (summary(lm_med)$coeff[,4])
 ```
 Again, neither of the betas are significant, since they both have p values > 0.05.
+
+```{r}
+yhat_med <- data.frame(yhat_med)
+
+ggplot(yhat_med, aes(x =locations_med$x_med, y = fit)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymax = yhat_med$upr, ymin = yhat_med$lwr))
+```
+TODO
+
 ```{r}
 locations_large <- data.frame(x_large = locations)
 lm_large <- lm(y_large ~ x_large)
 yhat_large <- predict.lm(lm_large, newdata=locations_large, interval="confidence")
-(yhat_large)
+```
+
+```{r}
+yhat_large <- data.frame(yhat_large)
+
+ggplot(yhat_large, aes(x =locations_large$x_large, y = fit)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymax = yhat_large$upr, ymin = yhat_large$lwr))
+```
+
+```{r}
 summary(lm_large)$coef
 (confint(lm_large))
 (anova(lm_large)$'Mean Sq'[2])
 (summary(lm_large)$coeff[,4])
 ```
 This time, both coefficients are very significant!
+
+## **EXPONENTIAL**
+
+
+
+## **SINUSOIDAL**
 
 2.	Non-normal errors
     a.	Simulate errors from a variety of different non-normal distributions (e.g. gamma, poisson). Make sure to shift the errors over so that they are still centered at 0.
@@ -127,6 +153,7 @@ This time, both coefficients are very significant!
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)
 
+## **GAMMA**
 ```{r}
 # Sample code to get started
 n <- 200
@@ -145,7 +172,12 @@ var(eps)
 mean(eps)
 
 ```
-        
+
+## **POISSON**
+```{r}
+#rpois()
+```
+
 3. Heterogeneous Variances
     a.	Simulate errors from a variety of different relationships with X (e.g. eps = 2 * sqrt(x))
     b.	Try simulations with a small sample size (e.g. 20), a medium sample size (e.g. n= 100), and a large sample size (e.g. n = 5000). 
