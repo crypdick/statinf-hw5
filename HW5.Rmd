@@ -154,7 +154,79 @@ y_smallexp <- b0 - b1 * exp(x_smallexp)^2 + eps_smallexp
 # med sample size
 x_medexp <- runif(n_med, 0, 10)
 eps_medexp <- 3 * rnorm(n_med)
+y_medexp <- b0 - b1 * (x_medexp - 5)^2 + eps_medexp
+
+# lrg sample size
+x_largeexp <- runif(n_large, 0, 10)
+eps_largeexp <- 3 * rnorm(n_large)
+y_largeexp <- b0 - b1 * (x_largeexp - 5)^2 + eps_largeexp
+
+# part c, for each simulation:
+# predict y-hat at several different locations using a confidence interval.
+locations <- c(-100, -20, 0, 20, 100)
+locations_smallexp <- data.frame(x_smallexp = locations)
+
+lm_smallexp <- lm(y_smallexp ~ x_smallexp)
+yhat_smallexp <- predict.lm(lm_smallexp, newdata=locations_smallexp, interval="confidence") # predict y_hat
+
+summary(lm_smallexp)$coef  # model coefficients
+(confint(lm_smallexp))
+(anova(lm_smallexp)$'Mean Sq'[2]) # MSE
+(summary(lm_smallexp)$coeff[,4])  # p-vals of our coeffs
 ```
+TODO beta p-vals
+
+```{r}
+locations_medexp <- data.frame(x_medexp = locations)
+lm_medexp <- lm(y_medexp ~ x_medexp)
+yhat_medexp <- predict.lm(lm_medexp, newdata=locations_medexp, interval="confidence")
+(yhat_medexp)
+summary(lm_medexp)$coef
+(confint(lm_medexp))
+(anova(lm_medexp)$'Mean Sq'[2])
+(summary(lm_medexp)$coeff[,4])
+```
+TODO beta p-vals
+
+
+```{r}
+locations_largeexp <- data.frame(x_largeexp = locations)
+lm_largeexp <- lm(y_largeexp ~ x_largeexp)
+yhat_largeexp <- predict.lm(lm_largeexp, newdata=locations_largeexp, interval="confidence")
+```
+
+```{r}
+summary(lm_largeexp)$coef
+(confint(lm_largeexp))
+(anova(lm_largeexp)$'Mean Sq'[2])
+(summary(lm_largeexp)$coeff[,4])
+```
+TODO coeff significance
+
+
+```{r}
+yhat_smallexp <- data.frame(yhat_smallexp)
+
+ggplot(yhat_smallexp, aes(x =locations_smallexp$x_smallexp, y = fit)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymax = yhat_smallexp$upr, ymin = yhat_smallexp$lwr))
+
+
+yhat_medexp <- data.frame(yhat_medexp)
+
+ggplot(yhat_medexp, aes(x =locations_medexp$x_med, y = fit)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymax = yhat_medexp$upr, ymin = yhat_medexp$lwr))
+
+
+yhat_largeexp <- data.frame(yhat_largeexp)
+
+ggplot(yhat_largeexp, aes(x =locations_largeexp$x_large, y = fit)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymax = yhat_largeexp$upr, ymin = yhat_largeexp$lwr))
+```
+Changing the sample size changed:
+TODO
 
 
 ## **SINUSOIDAL**
