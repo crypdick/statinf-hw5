@@ -40,104 +40,127 @@ require(ggplot2)
 
 __Aside:__ Many of the issues you end up facing with a nonlinear relationship can also be seen if an important predictor is excluded from the model. If you have extra time, feel free to play with this issue as well (optional).
 
-## **POLYNOMIAL** 
+
 ```{r}
 set.seed(1)
 # Sample code to get started
 n_small <- 20
 n_med <- 100
 n_large <- 5000
+```
+
+
+## **POLYNOMIAL** 
+```{r}
+# TODO: randomize these for part e
 b0 <- 10
 b1 <- 2
 
 # small sample size
-x_small <- runif(n_small, 0, 10)
-eps_small <- 3 * rnorm(n_small)
-y_small <- b0 - b1 * (x_small - 5)^2 + eps_small
+x_smallpoly <- runif(n_small, 0, 10)
+eps_smallpoly <- 3 * rnorm(n_small)
+y_smallpoly <- b0 - b1 * (x_smallpoly - 5)^2 + eps_smallpoly
 
 
 # med sample size
-x_med <- runif(n_med, 0, 10)
-eps_med <- 3 * rnorm(n_med)
-y_med <- b0 - b1 * (x_med - 5)^2 + eps_med
+x_medpoly <- runif(n_med, 0, 10)
+eps_medpoly <- 3 * rnorm(n_med)
+y_medpoly <- b0 - b1 * (x_medpoly - 5)^2 + eps_medpoly
 
 # lrg sample size
-x_large <- runif(n_large, 0, 10)
-eps_large <- 3 * rnorm(n_large)
-y_large <- b0 - b1 * (x_large - 5)^2 + eps_large
+x_largepoly <- runif(n_large, 0, 10)
+eps_largepoly <- 3 * rnorm(n_large)
+y_largepoly <- b0 - b1 * (x_largepoly - 5)^2 + eps_largepoly
 
 # part c, for each simulation:
 # predict y-hat at several different locations using a confidence interval.
 locations <- c(-100, -20, 0, 20, 100)
-locations_small <- data.frame(x_small = locations)
+locations_smallpoly <- data.frame(x_smallpoly = locations)
 
-lm_small <- lm(y_small ~ x_small)
-yhat_small <- predict.lm(lm_small, newdata=locations_small, interval="confidence")
+lm_smallpoly <- lm(y_smallpoly ~ x_smallpoly)
+yhat_smallpoly <- predict.lm(lm_smallpoly, newdata=locations_smallpoly, interval="confidence") # predict y_hat
 
-summary(lm_small)$coef
-(confint(lm_small))
-(anova(lm_small)$'Mean Sq'[2])
-(summary(lm_small)$coeff[,4])
+summary(lm_smallpoly)$coef  # model coefficients
+(confint(lm_smallpoly))
+(anova(lm_smallpoly)$'Mean Sq'[2]) # MSE
+(summary(lm_smallpoly)$coeff[,4])  # p-vals of our coeffs
 ```
 Neither of the betas are significant, since they both have p values > 0.05.
 
 ```{r}
-yhat_small <- data.frame(yhat_small)
-
-ggplot(yhat_small, aes(x =locations_small$x_small, y = fit)) +
-  geom_point(size = 4) +
-  geom_errorbar(aes(ymax = yhat_small$upr, ymin = yhat_small$lwr))
-```
-
-TODO
-```{r}
-locations_med <- data.frame(x_med = locations)
-lm_med <- lm(y_med ~ x_med)
-yhat_med <- predict.lm(lm_med, newdata=locations_med, interval="confidence")
-(yhat_med)
-summary(lm_med)$coef
-(confint(lm_med))
-(anova(lm_med)$'Mean Sq'[2])
-(summary(lm_med)$coeff[,4])
+locations_medpoly <- data.frame(x_medpoly = locations)
+lm_medpoly <- lm(y_medpoly ~ x_medpoly)
+yhat_medpoly <- predict.lm(lm_medpoly, newdata=locations_medpoly, interval="confidence")
+(yhat_medpoly)
+summary(lm_medpoly)$coef
+(confint(lm_medpoly))
+(anova(lm_medpoly)$'Mean Sq'[2])
+(summary(lm_medpoly)$coeff[,4])
 ```
 Again, neither of the betas are significant, since they both have p values > 0.05.
 
-```{r}
-yhat_med <- data.frame(yhat_med)
-
-ggplot(yhat_med, aes(x =locations_med$x_med, y = fit)) +
-  geom_point(size = 4) +
-  geom_errorbar(aes(ymax = yhat_med$upr, ymin = yhat_med$lwr))
-```
-TODO
 
 ```{r}
-locations_large <- data.frame(x_large = locations)
-lm_large <- lm(y_large ~ x_large)
-yhat_large <- predict.lm(lm_large, newdata=locations_large, interval="confidence")
+locations_largepoly <- data.frame(x_largepoly = locations)
+lm_largepoly <- lm(y_largepoly ~ x_largepoly)
+yhat_largepoly <- predict.lm(lm_largepoly, newdata=locations_largepoly, interval="confidence")
 ```
 
 ```{r}
-yhat_large <- data.frame(yhat_large)
-
-ggplot(yhat_large, aes(x =locations_large$x_large, y = fit)) +
-  geom_point(size = 4) +
-  geom_errorbar(aes(ymax = yhat_large$upr, ymin = yhat_large$lwr))
-```
-
-```{r}
-summary(lm_large)$coef
-(confint(lm_large))
-(anova(lm_large)$'Mean Sq'[2])
-(summary(lm_large)$coeff[,4])
+summary(lm_largepoly)$coef
+(confint(lm_largepoly))
+(anova(lm_largepoly)$'Mean Sq'[2])
+(summary(lm_largepoly)$coeff[,4])
 ```
 This time, both coefficients are very significant!
 
-## **EXPONENTIAL**
 
+```{r}
+yhat_smallpoly <- data.frame(yhat_smallpoly)
+
+ggplot(yhat_smallpoly, aes(x =locations_smallpoly$x_smallpoly, y = fit)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymax = yhat_smallpoly$upr, ymin = yhat_smallpoly$lwr))
+
+
+yhat_medpoly <- data.frame(yhat_medpoly)
+
+ggplot(yhat_medpoly, aes(x =locations_medpoly$x_med, y = fit)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymax = yhat_medpoly$upr, ymin = yhat_medpoly$lwr))
+
+
+yhat_largepoly <- data.frame(yhat_largepoly)
+
+ggplot(yhat_largepoly, aes(x =locations_largepoly$x_large, y = fit)) +
+  geom_point(size = 4) +
+  geom_errorbar(aes(ymax = yhat_largepoly$upr, ymin = yhat_largepoly$lwr))
+```
+Changing the sample size changed:
+The confidence intervals become tighter. TODO expand.
+
+## **EXPONENTIAL**
+```{r}
+# TODO: randomize these for part e
+b0 <- 10
+b1 <- 2
+
+# small sample size
+x_smallexp <- runif(n_small, 0, 10)
+eps_smallexp <- 3 * rnorm(n_small)
+y_smallexp <- b0 - b1 * exp(x_smallexp)^2 + eps_smallexp
+
+
+# med sample size
+x_medexp <- runif(n_med, 0, 10)
+eps_medexp <- 3 * rnorm(n_med)
+```
 
 
 ## **SINUSOIDAL**
+
+
+## PART E
 
 2.	Non-normal errors
     a.	Simulate errors from a variety of different non-normal distributions (e.g. gamma, poisson). Make sure to shift the errors over so that they are still centered at 0.
@@ -157,6 +180,9 @@ This time, both coefficients are very significant!
 ```{r}
 # Sample code to get started
 n <- 200
+
+
+# TODO randomize this for part e
 b0 <- 10
 b1 <- 2
 eps_alpha <- 2
