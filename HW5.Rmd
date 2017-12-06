@@ -66,12 +66,12 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
 # function that will run simulations, violating a specific assumption
 run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, violation_func, parameters, sigma_sq) {
   
-  sim_results <- data.frame(bad_predictions = 0,
-                            bad_b0 = 0, 
-                            bad_b1 = 0, 
-                            mse = 0, 
-                            insignificant_b0 = 0, 
-                            insignificant_b1 = 0)
+  sim_results <- data.frame(bad_prediction_rate = 0,
+                            bad_b0_rate = 0, 
+                            bad_b1_rate = 0, 
+                            average_mse = 0, 
+                            insignificant_b0_rate = 0, 
+                            insignificant_b1_rate = 0)
 
   b0 <- parameters[1]
   b1 <- parameters[2]
@@ -94,26 +94,27 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     # predict y for new values of x using the fitted linear model
     y_hat_ci <- predict(my_lm, newdata = data.frame(x = new_obsv), interval = "confidence")
     # check whether the confidence interval actually captures the expected value of y from the true model
-    good_predictions <- sum((exp_val_y >= y_hat_ci[,2]) & (exp_val_y <= y_hat_ci[,3]))
-    if (good_predictions < num_new_obsv/2) sim_results$bad_predictions <- sim_results$bad_predictions + 1
+    bad_predictions <- num_new_obsv - sum((exp_val_y >= y_hat_ci[,2]) & (exp_val_y <= y_hat_ci[,3]))
+    sim_results$bad_prediction_rate <- sim_results$bad_prediction_rate + bad_predictions
     
     # get confidence iterval for beta hat
     beta_ci <- confint(my_lm)
     # check whether the true value for the betas is caputured in the confidence interval
     good_betas <- ((parameters >= beta_ci[,1]) & (parameters <= beta_ci[,2]))
-    if (good_betas[1] == FALSE) sim_results$bad_b0 <- sim_results$bad_b0 + 1
-    if (good_betas[2] == FALSE) sim_results$bad_b1 <- sim_results$bad_b1 + 1
+    if (good_betas[1] == FALSE) sim_results$bad_b0_rate <- sim_results$bad_b0_rate + 1
+    if (good_betas[2] == FALSE) sim_results$bad_b1_rate <- sim_results$bad_b1_rate + 1
     
     # add the mse to the sum of MSE for all runs (to be averaged at the end)
-    sim_results$mse <- sim_results$mse + (anova(my_lm)$'Mean Sq'[2])
+    sim_results$average_mse <- sim_results$average_mse + (anova(my_lm)$'Mean Sq'[2])
     
     
     # check which beta_hats are significant based on the p-values
     p_vals <- summary(my_lm)$coeff[,4]
-    if (p_vals[1] > .05) sim_results$insignificant_b0 <- sim_results$insignificant_b0 + 1
-    if (p_vals[2] > .05) sim_results$insignificant_b1 <- sim_results$insignificant_b1 + 1
+    if (p_vals[1] > .05) sim_results$insignificant_b0_rate <- sim_results$insignificant_b0_rate + 1
+    if (p_vals[2] > .05) sim_results$insignificant_b1_rate <- sim_results$insignificant_b1_rate + 1
   }
-  sim_results$mse <- sim_results$mse/num_runs
+  sim_results$bad_prediction_rate <- sim_results$bad_prediction_rate/(num_new_obsv*num_runs)
+  sim_results[,2:6] <- sim_results[,2:6]/num_runs
 
   return(sim_results)
   
