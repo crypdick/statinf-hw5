@@ -12,7 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 require(ggplot2)
-require(dplyr)
 ```
 
 
@@ -40,7 +39,8 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
     }
     if (violation_name == "Non-normal errors") {
       if (violation_func == "Gamma") {
-
+        x <- orig_x
+        new_obsv <- orig_new_obsv
         eps_alpha <- 2
         eps_beta <- 1/4
         eps <- (rgamma(sample_size, shape = eps_alpha, scale = eps_beta) - eps_alpha * eps_beta) * 2
@@ -802,25 +802,25 @@ y <- b0 + b1 * x1 + b2 * x2 + eps
 
 
 
-B <- 100
-many.sims.multicollinearity <- sapply(1:B, function(i) {
-    # x <- rnorm(100, mean = 0, sd = 1)
-    # eps <- rnorm(100, mean = 0, sd = sqrt(0.25))
-    # y <- -1 + 0.5 * x + eps
-    # simul.fit <- lm(y ~ x)
-    # beta.1 <- 0.5
-    # lower <- confint(simul.fit, "x")[1]
-    # upper <- confint(simul.fit, "x")[2]
-    # boolean <- beta.1 <= upper & beta.1 >= lower
-    #return(boolean)
-})
+# B <- 100
+# many.sims.multicollinearity <- sapply(1:B, function(i) {
+#     # x <- rnorm(100, mean = 0, sd = 1)
+#     # eps <- rnorm(100, mean = 0, sd = sqrt(0.25))
+#     # y <- -1 + 0.5 * x + eps
+#     # simul.fit <- lm(y ~ x)
+#     # beta.1 <- 0.5
+#     # lower <- confint(simul.fit, "x")[1]
+#     # upper <- confint(simul.fit, "x")[2]
+#     # boolean <- beta.1 <= upper & beta.1 >= lower
+#     #return(boolean)
+# })
 
-proportion <- sum(many.sims.multicollinearity)/length(many.sims.multicollinearity)
-proportion
+# proportion <- sum(many.sims.multicollinearity)/length(many.sims.multicollinearity)
+# proportion
 
 ```
 
-`r proportion` % of my confidence intervals capture the true value of  .   
+<!-- r proportion % of my confidence intervals capture the true value of  .    -->
 
         
 6. Put it all together: Combine the code from the previous 5 parts. Have R randomly choose whether to generate data that violates one (or more) of the assumptions, or whether all the assumptions are valid. Show appropriate diagnostics and test yourself to see if you can predict whether there are problem areas or not. Repeat the simulation several times and record your accuracy at detecting the different problem areas.  
