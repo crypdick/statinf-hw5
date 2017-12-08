@@ -93,6 +93,7 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     violated_new_obsv <- violated_data[[2]]
     eps <- violated_data[[3]]
     
+    # TODO: make this not break show_diagnostics
     # if (violation == "Multicolinearity") {
     #   X <- violated_X
     #   new_obsv <- violated_new_obsv
@@ -169,7 +170,8 @@ show_diagnostics <- function(payload) {
   # unpack payload
   list2env(payload, envir=environment())
   #list[sim_results, lm_model, x, y, eps, y_hat_ci, exp_val_y] <- payload
-
+  
+  print(sim_results)
   print("Diagnostic #1: Is the Regression Function Linear? ")
   # print() required inside function
   print(summary(lm_model))
@@ -279,18 +281,18 @@ poly_med_results <-run_simulations(num_runs,
                                    num_predictors, 
                                    sigma_sq)
 
-poly_large_results <-run_simulations(num_runs, 
+poly_large_results <- run_simulations(num_runs, 
                                      n_large, 
                                      num_new_obsv, 
                                      violation =  "Nonlinear relationship", 
                                      violation_func = poly_func, 
                                      num_predictors, 
                                      sigma_sq)
-polynomial_results <- rbind(small_samp = poly_small_results, 
-                            med_samp = poly_med_results, 
-                            large_samp = poly_large_results)
-polynomial_results
+(polynomial_results <- rbind(small_samp = poly_small_results[[1]], 
+                            med_samp = poly_med_results[[1]], 
+                            large_samp = poly_large_results[[1]]))
 ```
+
 ## **EXPONENTIAL**
 ```{r exponential_relationship}
 exp_small_results <- run_simulations(num_runs,
@@ -317,10 +319,9 @@ exp_large_results <-run_simulations(num_runs,
                                     num_predictors, 
                                     sigma_sq)
 
-exponential_results <- rbind(small_samp = exp_small_results,
-                             med_samp = exp_med_results, 
-                             large_samp = exp_large_results)
-exponential_results
+(exponential_results <- rbind(small_samp = exp_small_results[[1]],
+                             med_samp = exp_med_results[[1]], 
+                             large_samp = exp_large_results[[1]]))
 ```
 ## **SINUSOIDAL**
 ```{r sinusoidal_relationship}
@@ -348,10 +349,9 @@ sin_large_results <- run_simulations(num_runs,
                                      num_predictors, 
                                      sigma_sq)
 
-sinusoidal_results <- rbind(small_samp = sin_small_results, 
-                            med_samp = sin_med_results, 
-                            large_samp = sin_large_results)
-sinusoidal_results
+(sinusoidal_results <- rbind(small_samp = sin_small_results[[1]], 
+                            med_samp = sin_med_results[[1]], 
+                            large_samp = sin_large_results[[1]]))
 ```
 ## **LOGARITHMIC**
 ```{r logarithmic_relationship}
@@ -379,10 +379,9 @@ log_large_results <- run_simulations(num_runs,
                                      num_predictors, 
                                      sigma_sq)
 
-logarithmic_results <- rbind(small_samp = log_small_results, 
-                             med_samp = log_med_results, 
-                             large_samp = log_large_results)
-logarithmic_results
+(logarithmic_results <- rbind(small_samp = log_small_results[[1]], 
+                             med_samp = log_med_results[[1]], 
+                             large_samp = log_large_results[[1]]))
 ```
 TODO
 
@@ -446,10 +445,9 @@ gamma_large_results <- run_simulations(num_runs,
                                      num_predictors, 
                                      sigma_sq)
 
-gamma_results <- rbind(small_samp = gamma_small_results, 
-                             med_samp = gamma_med_results, 
-                             large_samp = gamma_large_results)
-gamma_results
+(gamma_results <- rbind(small_samp = gamma_small_results[[1]], 
+                             med_samp = gamma_med_results[[1]], 
+                             large_samp = gamma_large_results[[1]]))
 ```
 
 ```{r}
@@ -500,14 +498,12 @@ poisson_large_results <- run_simulations(num_runs,
                                      num_predictors, 
                                      sigma_sq)
 
-poisson_results <- rbind(small_samp = poisson_small_results, 
-                             med_samp = poisson_med_results, 
-                             large_samp = poisson_large_results)
-poisson_results
+(poisson_results <- rbind(small_samp = poisson_small_results[[1]], 
+                             med_samp = poisson_med_results[[1]], 
+                             large_samp = poisson_large_results[[1]]))
 ```
 
 ```{r}
-
 show_diagnostics(poisson_small_results)
 ```
 
