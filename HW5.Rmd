@@ -94,7 +94,6 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     eps <- violated_data[[3]]
     
     # if (violation == "Multicolinearity") {
-    #   print("If works")
     #   X <- violated_X
     #   new_obsv <- violated_new_obsv
     # }
@@ -104,10 +103,11 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     exp_val_Y <- cbind(1,violated_new_obsv) %*% parameters
     
     # fit a linear model using the simulated data
-    my_lm <- lm(Y ~ X)
+    lm_data <- data.frame(Y = Y, X = I(X))
+   my_lm <- lm(Y ~ X, data=lm_data)
     
     # predict y for new values of x using the fitted linear model
-    Y_hat_ci <- predict(my_lm, newdata = data.frame(X = new_obsv), interval = "confidence")
+    Y_hat_ci <- predict(my_lm, newdata = data.frame(X = I(new_obsv)), interval = "confidence")
     
     # check whether the confidence interval actually captures the expected value of y from the true model
     bad_predictions <- num_new_obsv - sum((exp_val_Y >= Y_hat_ci[,2]) & (exp_val_Y <= Y_hat_ci[,3]))
