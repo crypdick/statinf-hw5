@@ -25,6 +25,7 @@ require(ggplot2)
 ```{r run_sim}
 check_violations <- function(sample_size, orig_new_obsv, violation_name, violation_func, sigma_sq, orig_X) {
 
+  # ordinary relationship with no violations of linearity
   if (violation_name == "None") {
     X <- orig_X
     new_obsv <- orig_new_obsv
@@ -38,6 +39,7 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
     return(list(X,new_obsv,eps))
   }
   if (violation_name == "Non-normal errors") {
+    # gamma distributed errors
     if (violation_func == "Gamma") {
       X <- orig_X
       new_obsv <- orig_new_obsv
@@ -46,6 +48,7 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
       eps <- (rgamma(sample_size, shape = eps_alpha, scale = eps_beta) - eps_alpha * eps_beta) * 2
       return(list(X,new_obsv,eps))
     }
+    # poisson distributed errors
     if (violation_func == "Poisson") {
       X <- orig_X
       new_obsv <- orig_new_obsv
@@ -79,13 +82,12 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
                             insignificant_intercept_rate = 0, 
                             insignificant_predictor_rate = 0)
 
-  # b0 <- parameters[1]
-  # b1 <- parameters[2]
   parameters <- sample.int(10,num_predictors + 1)
   for (i in 1:num_runs) {
     X <- runif(sample_size, 0, 10)
     new_obsv <- runif(num_new_obsv, 0, 10)
     
+    # transform our data to violate assumptions of linearity
     violated_data <- check_violations(sample_size, new_obsv, violation, violation_func, sigma_sq, X)
     violated_X <- violated_data[[1]]
     violated_new_obsv <- violated_data[[2]]
@@ -115,8 +117,12 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     beta_ci <- confint(my_lm)
     # check whether the true value for the betas is caputured in the confidence interval
     good_betas <- ((parameters >= beta_ci[,1]) & (parameters <= beta_ci[,2]))
-    if (good_betas[1] == FALSE) sim_results$bad_intercept_rate <- sim_results$bad_intercept_rate + 1
-    if (sum(good_betas[-1] == FALSE) >= 1) 
+    if (good_betas[1] == FALSE)
+# how many times true beta_0 was not captured by the confint for our fitted model
+      sim_results$bad_intercept_rate <- sim_results$bad_intercept_rate + 1
+    if (sum(good_betas[-1] == FALSE) >= 1)
+# bad predictor rate: how many times a parameter that was not b0 was not within the confint
+      # if there's more than one they are combined
       {sim_results$bad_predictor_rate <- sim_results$bad_predictor_rate + sum(good_betas[-1] == FALSE)}
     
     # add the mse to the sum of MSE for all runs (to be averaged at the end)
@@ -125,15 +131,25 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     
     # check which beta_hats are significant based on the p-values
     p_vals <- summary(my_lm)$coeff[,4]
-    if (p_vals[1] > .05) sim_results$insignificant_intercept_rate <- sim_results$insignificant_intercept_rate + 1
+    if (p_vals[1] > .05)
+# frequency % p-val(intercept) was >0.05      
+      sim_results$insignificant_intercept_rate <- sim_results$insignificant_intercept_rate + 1
     if (sum(p_vals[-1] > .05) >= 1) 
+# freq that params for predictors had p-val > 0.05 in all our sims. on interval (0,1)
       {sim_results$insignificant_predictor_rate <- sim_results$insignificant_predictor_rate + sum(p_vals[-1] > .05)}
   }
   sim_results <- sim_results/num_runs
+  
+  
   sim_results$bad_prediction_rate <- sim_results$bad_prediction_rate/(num_new_obsv)
+  
+  
   sim_results$insignificant_predictor_rate <- sim_results$bad_predictor_rate/(num_predictors)
+  
+  
   sim_results$insignificant_predictor_rate <- sim_results$insignificant_predictor_rate/(num_predictors)
 
+  # R is terrible and we have to return our objects as a list >:C
   payload <- list(sim_results=sim_results, lm_model=my_lm, X=X, Y=Y, eps=eps, Y_hat_ci=Y_hat_ci, exp_val_Y=exp_val_Y)
   return(payload)
   
@@ -198,7 +214,7 @@ __Aside:__ Many of the issues you end up facing with a nonlinear relationship ca
 
 
 ```{r set_up_sim_constants}
-# set up variables for simulations
+# set up constants for simulations
 set.seed(1)
 n_small <- 20
 n_med <- 100
