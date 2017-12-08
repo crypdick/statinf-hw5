@@ -66,8 +66,8 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
     return(list(X,new_obsv,eps))
   }
   if (violation_name == "Multicolinearity") {
-    X <- unname(cbind(orig_X,violation_func(orig_X)))
-    new_obsv<- unname(cbind(orig_new_obsv,violation_func(orig_new_obsv)))
+    X <- unname(cbind(orig_X[,1],violation_func(orig_X[,1])))
+    new_obsv<- unname(cbind(orig_new_obsv[,1],violation_func(orig_new_obsv[,1])))
     eps <- rnorm(sample_size, mean = 0, sd = sqrt(sigma_sq))
     return(list(X,new_obsv,eps))
   }
@@ -98,8 +98,13 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
 
   parameters <- sample.int(10,num_predictors + 1)
   for (i in 1:num_runs) {
-    X <- runif(sample_size, 0, 10)
-    new_obsv <- runif(num_new_obsv, 0, 10)
+    
+    if (num_predictors == 2) {
+      X <- cbind(runif(sample_size, 0, 10),runif(sample_size, 10, 20))
+      new_obsv <- cbind(runif(num_new_obsv, 0, 10),runif(num_new_obsv, 10, 20))
+    } else {X <- runif(sample_size, 0, 10)
+            new_obsv <- runif(num_new_obsv, 0, 10)}
+    
     
     # transform our data to violate assumptions of linearity
     violated_data <- check_violations(sample_size, new_obsv, violation, violation_func, sigma_sq, X)
@@ -107,19 +112,29 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     violated_new_obsv <- violated_data[[2]]
     eps <- violated_data[[3]]
     
+<<<<<<< HEAD
     # TODO: make this not break plot_diagnostics
     # if (violation == "Multicolinearity") {
     #   X <- violated_X
     #   new_obsv <- violated_new_obsv
     # }
     
+=======
+
+    # TODO: make this not break plot_diagnostics
+    if (violation == "Multicolinearity") {
+      X <- violated_X
+      new_obsv <- violated_new_obsv
+    }
+
+>>>>>>> adfbda75077adae9791d95c10fa8c7960e5a75c5
     # add in column of ones to capture beta0 when generating Y and expected value of Y
     Y <- (cbind(1,violated_X) %*% parameters) + eps
     exp_val_Y <- cbind(1,violated_new_obsv) %*% parameters
     
     # fit a linear model using the simulated data
     lm_data <- data.frame(Y = Y, X = I(X))
-   my_lm <- lm(Y ~ X, data=lm_data)
+    my_lm <- lm(Y ~ X, data=lm_data)
     
     # predict y for new values of x using the fitted linear model
     Y_hat_ci <- predict(my_lm, newdata = data.frame(X = I(new_obsv)), interval = "confidence")
@@ -737,36 +752,36 @@ corr_error_results_l
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)
         
 ```{r}
-# add_noise <- function(x) x + rnorm(length(x))
-# num_predictors <- 2
-# multicolinearity_small_results <- run_simulations(num_runs,
-#                                      n_small, 
-#                                      num_new_obsv, 
-#                                      violation =  "Multicolinearity", 
-#                                      violation_func = add_noise, 
-#                                      num_predictors, 
-#                                      sigma_sq)
-# 
-# multicolinearity_med_results <- run_simulations(num_runs,
-#                                      n_med, 
-#                                      num_new_obsv, 
-#                                      violation =  "Multicolinearity", 
-#                                      violation_func = add_noise, 
-#                                      num_predictors, 
-#                                      sigma_sq)
-# 
-# multicolinearity_large_results <- run_simulations(num_runs,
-#                                      n_large, 
-#                                      num_new_obsv, 
-#                                      violation =  "Multicolinearity", 
-#                                      violation_func = add_noise, 
-#                                      num_predictors, 
-#                                      sigma_sq)
-# 
-# multicolinearity_results <- rbind(small_samp = multicolinearity_small_results,
-#                              med_samp = multicolinearity_med_results, 
-#                              large_samp = multicolinearity_large_results)
-# multicolinearity_results
+add_noise <- function(x) x + rnorm(length(x))
+num_predictors <- 2
+multicolinearity_small_results <- run_simulations(num_runs,
+                                     n_small,
+                                     num_new_obsv,
+                                     violation =  "Multicolinearity",
+                                     violation_func = add_noise,
+                                     num_predictors,
+                                     sigma_sq)
+
+multicolinearity_med_results <- run_simulations(num_runs,
+                                     n_med,
+                                     num_new_obsv,
+                                     violation =  "Multicolinearity",
+                                     violation_func = add_noise,
+                                     num_predictors,
+                                     sigma_sq)
+
+multicolinearity_large_results <- run_simulations(num_runs,
+                                     n_large,
+                                     num_new_obsv,
+                                     violation =  "Multicolinearity",
+                                     violation_func = add_noise,
+                                     num_predictors,
+                                     sigma_sq)
+
+multicolinearity_results <- rbind(small_samp = multicolinearity_small_results[[1]],
+                             med_samp = multicolinearity_med_results[[1]],
+                             large_samp = multicolinearity_large_results[[1]])
+multicolinearity_results
 ```
 
 
@@ -776,13 +791,14 @@ TODO write interpretation
 #part e, name the normal func & nonnormal func & randomly call it
 n <- sample(20:5000, 1)
 random.violation5 <- sample(c("None","Multicolinearity"), 1)
+random.violation5
 
-random_results5 <- run_simulations(num_runs, 
-                                  n, 
-                                  num_new_obsv, 
+random_results5 <- run_simulations(num_runs,
+                                  n,
+                                  num_new_obsv,
                                   violation =  random.violation5,
                                   violation_func = add_noise,
-                                  num_predictors, 
+                                  num_predictors,
                                   sigma_sq)
 
 random_results5[[1]]
