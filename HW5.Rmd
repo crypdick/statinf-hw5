@@ -24,7 +24,8 @@ require(ggplot2)
 
 ```{r run_sim}
 check_violations <- function(sample_size, orig_new_obsv, violation_name, violation_func, sigma_sq, orig_x) {
-    
+# new_obs used to calculate y
+# x, eps used to calculate y_hat
     if (violation_name == "None") {
       x <- orig_x
       new_obsv <- orig_new_obsv
@@ -120,6 +121,15 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
   
 }
 ```
+
+
+
+```{r show_diagnostics}
+show_diagnostics <- function(sim_results) {
+  
+}
+```
+
 # Questions
 
 1.	Nonlinear relationship
