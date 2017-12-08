@@ -117,6 +117,15 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
   sim_results$bad_prediction_rate <- sim_results$bad_prediction_rate/(num_new_obsv*num_runs)
   sim_results[,2:6] <- sim_results[,2:6]/num_runs
 
+  
+  # see if I can get away with stashing lm inside sim
+  sim_results.lm <- my_lm
+  sim_results.x <- x
+  sim_results.y <- y
+  sim_results.eps <- eps
+  sim_results.y_hat_ci <- y_hat_ci
+  sim_results.exp_val_y <- exp_val_y
+  
   return(sim_results)
   
 }
@@ -125,9 +134,16 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
 
 
 ```{r show_diagnostics}
-show_diagnostics <- function(sim_results) {
-  
+show_diagnostics <- function(lm_model, xs, ys) {
+  summary(lm_model)
+  anova(lm_model)
+  plot(ys ~ xs)
+abline(lm_model)
+#ggplot(yhat_medsine, aes(x =locations_medsine$x_med, y = fit)) +
+#geom_point(size = 4) +
+#geom_errorbar(aes(ymax = yhat_medsine$upr, ymin = #yhat_medsine$lwr))
 }
+show_diagnostics(my_lm, x, y)
 ```
 
 # Questions
