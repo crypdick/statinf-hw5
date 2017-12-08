@@ -168,13 +168,13 @@ show_diagnostics <- function(payload) {
   print(summary(lm_model))
   print(anova(lm_model))
   plot(lm_model)
+  # TODO check dims of X before running this so that we don't get an error when plotting a multivariate model
   plot(Y ~ X)
 
 abline(lm_model)
 #ggplot(yhat_medsine, aes(x =locations_medsine$x_med, y = fit)) +
 #geom_point(size = 4) +
 #geom_errorbar(aes(ymax = yhat_medsine$upr, ymin = #yhat_medsine$lwr))
-}
 
 # n_sims <- 1
 # n_samps <- 100
