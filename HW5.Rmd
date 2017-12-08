@@ -111,15 +111,6 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     violated_X <- violated_data[[1]]
     violated_new_obsv <- violated_data[[2]]
     eps <- violated_data[[3]]
-    
-<<<<<<< HEAD
-    # TODO: make this not break plot_diagnostics
-    # if (violation == "Multicolinearity") {
-    #   X <- violated_X
-    #   new_obsv <- violated_new_obsv
-    # }
-    
-=======
 
     # TODO: make this not break plot_diagnostics
     if (violation == "Multicolinearity") {
@@ -127,7 +118,6 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
       new_obsv <- violated_new_obsv
     }
 
->>>>>>> adfbda75077adae9791d95c10fa8c7960e5a75c5
     # add in column of ones to capture beta0 when generating Y and expected value of Y
     Y <- (cbind(1,violated_X) %*% parameters) + eps
     exp_val_Y <- cbind(1,violated_new_obsv) %*% parameters
