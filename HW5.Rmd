@@ -214,7 +214,7 @@ payload <- run_simulations(n_sims, n_samps, num_new_obsv, violation_type, violat
 cat(violation_type, n_sims, n_samps, num_new_obsv, str(violation_func), num_predictors, sigma_sq)
 show_diagnostics(payload)
 ```
->>>>>>> f2224a12681d56150d3f1550656ec23b190d7ffd
+
         
 __Aside:__ Many of the issues you end up facing with a nonlinear relationship can also be seen if an important predictor is excluded from the model. If you have extra time, feel free to play with this issue as well (optional).
 
@@ -244,7 +244,8 @@ poly_small_results <- run_simulations(num_runs,
                                       violation = "Nonlinear relationship", 
                                       violation_func = poly_func, 
                                       num_predictors, 
-                                      sigma_sq)[[1]]
+                                      sigma_sq)
+
 
 poly_med_results <-run_simulations(num_runs,
                                    n_med, 
@@ -252,7 +253,7 @@ poly_med_results <-run_simulations(num_runs,
                                    violation =  "Nonlinear relationship", 
                                    violation_func = poly_func, 
                                    num_predictors, 
-                                   sigma_sq)[[1]]
+                                   sigma_sq)
 
 poly_large_results <-run_simulations(num_runs, 
                                      n_large, 
@@ -260,12 +261,32 @@ poly_large_results <-run_simulations(num_runs,
                                      violation =  "Nonlinear relationship", 
                                      violation_func = poly_func, 
                                      num_predictors, 
-                                     sigma_sq)[[1]]
-polynomial_results <- rbind(small_samp = poly_small_results, 
-                            med_samp = poly_med_results, 
-                            large_samp = poly_large_results)
+                                     sigma_sq)
+
+
+```
+
+```{r}
+show_diagnostics(poly_small_results)
+```
+
+```{r}
+show_diagnostics(poly_med_results)
+```
+
+
+```{r}
+show_diagnostics(poly_large_results)
+```
+
+
+```{r}
+polynomial_results <- rbind(small_samp = poly_small_results[[1]], 
+                            med_samp = poly_med_results[[1]], 
+                            large_samp = poly_large_results[[1]])
 polynomial_results
 ```
+
 ## **EXPONENTIAL**
 ```{r exponential_relationship}
 exp_small_results <- run_simulations(num_runs,
