@@ -23,43 +23,43 @@ require(ggplot2)
 + Some sample code has been included, but you will need to try many different starting values for the parameters, sample size, and distributional assumptions. The included code is just to give you a starting point; it should not be considered sufficient to answer all the questions in each part. (And you are welcome to ignore the sample code and use your own)
 
 ```{r run_sim}
-check_violations <- function(sample_size, orig_new_obsv, violation_name, violation_func, sigma_sq, orig_x) {
+check_violations <- function(sample_size, orig_new_obsv, violation_name, violation_func, sigma_sq, orig_X) {
     
     if (violation_name == "None") {
-      x <- orig_x
+      X <- orig_X
       new_obsv <- orig_new_obsv
       eps <- rnorm(sample_size, mean = 0, sd = sqrt(sigma_sq))
       return(list(x,new_obsv,eps))
     }
     if (violation_name == "Nonlinear relationship") {
-      x <- violation_func(orig_x)
+      X <- violation_func(orig_X)
       new_obsv <- violation_func(orig_new_obsv)
       eps <- rnorm(sample_size, mean = 0, sd = sqrt(sigma_sq))
-      return(list(x,new_obsv,eps))
+      return(list(X,new_obsv,eps))
     }
     if (violation_name == "Non-normal errors") {
       if (violation_func == "Gamma") {
-        x <- orig_x
+        X <- orig_X
         new_obsv <- orig_new_obsv
         eps_alpha <- 2
         eps_beta <- 1/4
         eps <- (rgamma(sample_size, shape = eps_alpha, scale = eps_beta) - eps_alpha * eps_beta) * 2
-        return(list(x,new_obsv,eps))
+        return(list(X,new_obsv,eps))
       }
       if (violation_func == "Poisson") {
-        x <- orig_x
+        X <- orig_X
         new_obsv <- orig_new_obsv
         lambda <- 4
         eps <- (rpois(sample_size, lambda) - lambda) * 2
-        return(list(x,new_obsv,eps))
+        return(list(X,new_obsv,eps))
       }
     }
     if (violation_name == "Heterogeneous variances"){
-      x <- orig_x
+      X <- orig_X
       new_obsv <- orig_new_obsv
-      eps <- rnorm(sample_size, mean = 0, sd = violation_func(x))
-      return(list(x,new_obsv,eps))
-  }
+      eps <- rnorm(sample_size, mean = 0, sd = violation_func(X[,2]))
+      return(list(X,new_obsv,eps))
+    }
 }
 
 
@@ -73,23 +73,25 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
                             insignificant_b0_rate = 0, 
                             insignificant_b1_rate = 0)
 
-  b0 <- parameters[1]
-  b1 <- parameters[2]
+  # b0 <- parameters[1]
+  # b1 <- parameters[2]
   
   for (i in 1:num_runs) {
-    x <- runif(sample_size, 0, 10)
+    X <- runif(sample_size, 0, 10)
     new_obsv <- runif(num_new_obsv, 0, 10)
     
-    violated_data <- check_violations(sample_size, new_obsv, violation, violation_func, sigma_sq, x)
-    violated_x <- violated_data[[1]]
+    violated_data <- check_violations(sample_size, new_obsv, violation, violation_func, sigma_sq, X)
+    violated_X <- violated_data[[1]]
     violated_new_obsv <- violated_data[[2]]
     eps <- violated_data[[3]]
     
-    y <- b0 + b1 * violated_x + eps
-    exp_val_y <- b0 + b1 * violated_new_obsv
+    # add in column of ones to capture beta0 when generating Y and expected value of Y
+    Y <- (cbind(1,violated_X) %*% parameters) + eps
+    exp_val_Y <- cbind(1,violated_new_obsv) %*% parameters
+    
     
     # fit a linear model using the simulated data
-    my_lm <- lm(y ~ x)
+    my_lm <- lm(Y ~ X)
     
     # predict y for new values of x using the fitted linear model
     y_hat_ci <- predict(my_lm, newdata = data.frame(x = new_obsv), interval = "confidence")
