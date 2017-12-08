@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r}
+```{r, message=FALSE}
 require(ggplot2)
 ```
 
@@ -167,12 +167,11 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
 ```
 
 
-
 ```{r show_diagnostics}
 show_diagnostics <- function(payload) {
   # unpack payload
   list2env(payload, envir=environment())
-  
+  #list[sim_results, lm_model, x, y, eps, y_hat_ci, exp_val_y] <- payload
   writeLines("Diagnostic #1: Is the Regression Function Linear? ")
   #print("\n Diagnostic #1: Is the Regression Function Linear? ")
   # print() required inside function
@@ -188,13 +187,14 @@ show_diagnostics <- function(payload) {
   plot(lm_model, which = 1) 
   
   
-  #bf.test(y ~ Group, data = )
+  #df <- data.frame(X,Y)
+  #bf.test(Y ~ X, data = df)
   
   writeLines("Diagnostic #3: Are the Residuals Normally Distributed?")
   plot(lm_model, which = 2)
   
   writeLines("Diagnostic #4: Are the Residuals Independent?")  
-  #plot(1:length(), residuals(lm_model))
+  plot(1:length(X), residuals(lm_model))
   
   
   # writeLines("Diagnostic #5: Does the model fit all but one or a few outlier observations?")
@@ -601,7 +601,7 @@ random_results3[[1]]
 ```
 
 ```{r}
-show_diagnostics(random_results3)
+#show_diagnostics(random_results3)
 ```
 
 
@@ -713,7 +713,7 @@ random_results5[[1]]
 ```
 
 ```{r}
-show_diagnostics(random_results5)
+#show_diagnostics(random_results5)
 ```
     
 
