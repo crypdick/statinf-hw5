@@ -2,7 +2,9 @@
 title: "Homework 5"
 author: "Statistical Inference 1"
 date: "11/22/2017"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -10,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r}
+```{r, include=FALSE}
 require(ggplot2)
 ```
 
@@ -187,14 +189,18 @@ show_diagnostics(payload)
         ii.	Predict the beta coefficients for a linear model using a confidence interval. 
         iii. Find the MSE (to estimate sigma^2)
         iv. Test to see whether the beta(s) are significant
-    d. Which of the above tasks were affected by the nonlinear relationship?
+    d. Which of the above tasks were affected by the nonlinear relationship?  
+
+    
+    
     e. After you have experimented with the effects of different model structures, true parameter values, and sample sizes, let's repeat the simulation but test yourself to see whether you can detect non-linearity.
         i. Have R randomly choose whether to simulate data from a true linear model or a true nonlinear model.
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)  
-        
-<<<<<<< HEAD
-=======
+
+  We predict that the smaller models will be more likely to be affected by a nonlinear relationship. With large sample sizes, the normality assumption is not critical unless you are predicting new observations. But with smaller sample sizes, a violation of nonnomrality is more likely to affect the model. And since we only have 10 observations in the smaller simluation, the nonnormality assumption is especially difficult to detect because we expect random variation in small sample sizes anyways.  
+
+
 ```{r}
 n_sims <- 100
 n_samps <- 100
@@ -558,7 +564,10 @@ hetero_var_results
         ii.	Predict the beta coefficients for a linear model using a confidence interval. 
         iii. Find the MSE (to estimate sigma^2)
         iv. Test to see whether the beta(s) are significant (t-tests)
-    d. Which of the above tasks were affected by the violation of assumptions?
+    d. Which of the above tasks were affected by the violation of assumptions?  
+    
+    The simulation with the largest sample size was most affected by the violation of the assumptions. This makes sense since moderate multicollinearity should not really affect the model.  
+    
     e. After you have experimented with the effects of different model structures, true parameter values, and sample sizes, let's repeat the simulation but test yourself to see whether you can detect collinearity.
         i. Have R randomly choose whether to simulate data with correlated or uncorrelated predictor variables (X).
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
