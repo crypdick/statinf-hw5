@@ -71,6 +71,18 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
     eps <- rnorm(sample_size, mean = 0, sd = sqrt(sigma_sq))
     return(list(X,new_obsv,eps))
   }
+  if (violation_name == "Correlated Errors") {
+    X <- orig_X
+    rho <- violation_func
+    new_obsv <- orig_new_obsv
+    eps <- rep(0, sample_size)
+    e.ind <- rnorm(sample_size, mean = 0, sd = (sigma_sq / sqrt(1-rho^2)))
+    eps[1] <- e.ind[1]
+    for (i in 2:sample_size) {
+      eps[i] <- rho * eps[i-1] + e.ind[i]
+    }
+    return(list(X,new_obsv,eps))
+  }
 }
 
 # function that will run simulations, violating a specific assumption
@@ -589,9 +601,9 @@ hetero_var_large_results <-run_simulations(num_runs,
                                     num_predictors, 
                                     sigma_sq)
 
-hetero_var_results <- rbind(small_samp = hetero_var_small_results,
-                             med_samp = hetero_var_med_results, 
-                             large_samp = hetero_var_large_results)
+hetero_var_results <- rbind(small_samp = hetero_var_small_results[[1]],
+                             med_samp = hetero_var_med_results[[1]], 
+                             large_samp = hetero_var_large_results[[1]])
 hetero_var_results
 ```
 
@@ -642,28 +654,64 @@ random_results3[[1]]
 
 ```{r}
 # Sample code to get started
-n <- 200
-b0 <- 10
-b1 <- 10
-rho <- 0.9
-sigma <- 2
+corr_error_small_results_h <- run_simulations(num_runs,
+                                     n_small, 
+                                     num_new_obsv, 
+                                     violation =  "Correlated Errors", 
+                                     violation_func = 0.9, 
+                                     num_predictors, 
+                                     sigma_sq)
 
-x <- runif(n, 0, 10)
+corr_error_med_results_h <-run_simulations(num_runs, 
+                                  n_med, 
+                                  num_new_obsv, 
+                                  violation =  "Correlated Errors",
+                                  violation_func = 0.9, 
+                                  num_predictors, 
+                                  sigma_sq)
 
-eps <- arima.sim(model = list(ar = rho), n = n)
+corr_error_large_results_h <-run_simulations(num_runs,
+                                    n_large, 
+                                    num_new_obsv, 
+                                    violation =  "Correlated Errors", 
+                                    violation_func = 0.9, 
+                                    num_predictors, 
+                                    sigma_sq)
 
-y <- b0 + b1 * x + eps
+corr_error_results_h <- rbind(small_samp = hetero_var_small_results[[1]],
+                             med_samp = hetero_var_med_results[[1]], 
+                             large_samp = hetero_var_large_results[[1]])
+corr_error_results_h
 
-# OR...
+#correlated errors with rho of .3
+corr_error_small_results_l <- run_simulations(num_runs,
+                                     n_small, 
+                                     num_new_obsv, 
+                                     violation =  "Correlated Errors", 
+                                     violation_func = 0.3, 
+                                     num_predictors, 
+                                     sigma_sq)
 
-eps <- rep(0, n)
-e.ind <- rnorm(n, mean = 0, sd = (sigma / sqrt(1-rho^2)))
-eps[1] <- e.ind[1]
-for (i in 2:n) {
-  eps[i] <- rho * eps[i-1] + e.ind[i]
-}
+corr_error_med_results_l <-run_simulations(num_runs, 
+                                  n_med, 
+                                  num_new_obsv, 
+                                  violation =  "Correlated Errors",
+                                  violation_func = 0.3, 
+                                  num_predictors, 
+                                  sigma_sq)
 
-y <- b0 + b1 * x + eps
+corr_error_large_results_l <-run_simulations(num_runs,
+                                    n_large, 
+                                    num_new_obsv, 
+                                    violation =  "Correlated Errors", 
+                                    violation_func = 0.3, 
+                                    num_predictors, 
+                                    sigma_sq)
+
+corr_error_results_l <- rbind(small_samp = hetero_var_small_results[[1]],
+                             med_samp = hetero_var_med_results[[1]], 
+                             large_samp = hetero_var_large_results[[1]])
+corr_error_results_l
 ```
         
 5. Multicollinearity
