@@ -29,7 +29,7 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
     X <- orig_X
     new_obsv <- orig_new_obsv
     eps <- rnorm(sample_size, mean = 0, sd = sqrt(sigma_sq))
-    return(list(x,new_obsv,eps))
+    return(list(X,new_obsv,eps))
   }
   if (violation_name == "Nonlinear relationship") {
     X <- violation_func(orig_X)
@@ -134,7 +134,7 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
   sim_results$insignificant_predictor_rate <- sim_results$bad_predictor_rate/(num_predictors)
   sim_results$insignificant_predictor_rate <- sim_results$insignificant_predictor_rate/(num_predictors)
 
-  payload <- list(sim_results=sim_results, lm_model=my_lm, x=x, y=y, eps=eps, y_hat_ci=y_hat_ci, exp_val_y=exp_val_y)
+  payload <- list(sim_results=sim_results, lm_model=my_lm, X=X, Y=Y, eps=eps, Y_hat_ci=Y_hat_ci, exp_val_Y=exp_val_Y)
   return(payload)
   
 }
@@ -152,7 +152,7 @@ show_diagnostics <- function(payload) {
   print(summary(lm_model))
   print(anova(lm_model))
   plot(lm_model)
-  plot(y ~ x)
+  plot(Y ~ X)
 abline(lm_model)
 #ggplot(yhat_medsine, aes(x =locations_medsine$x_med, y = fit)) +
 #geom_point(size = 4) +
@@ -164,10 +164,11 @@ n_samps <- 100
 num_new_obsv <- 10
 violation_type <- "Nonlinear relationship"
 violation_func <- sin
-parameters <- c(0,1)
+# parameters <- c(0,1)
+num_predictors <- 1
 sigma_sq <- 1
 
-payload <- run_simulations(n_sims, n_samps, num_new_obsv, violation_type, violation_func, parameters, sigma_sq)
+payload <- run_simulations(n_sims, n_samps, num_new_obsv, violation_type, violation_func, num_predictors, sigma_sq)
 
 show_diagnostics(payload)
 ```
@@ -469,13 +470,13 @@ poisson_results
         
 ```{r}
 # Sample code to get started
-n <- 200
-b0 <- 10
-b1 <- 10
-
-x <- runif(n, 0, 10)
-eps <- rnorm(n, sd = 0.5 * x^2)
-y <- b0 + b1 * x + eps
+# n <- 200
+# b0 <- 10
+# b1 <- 10
+# 
+# x <- runif(n, 0, 10)
+# eps <- rnorm(n, sd = 0.5 * x^2)
+# y <- b0 + b1 * x + eps
 
 ```
 
