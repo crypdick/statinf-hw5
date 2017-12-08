@@ -165,18 +165,18 @@ abline(lm_model)
 #geom_errorbar(aes(ymax = yhat_medsine$upr, ymin = #yhat_medsine$lwr))
 }
 
-n_sims <- 10
-n_samps <- 100
-num_new_obsv <- 10
-violation_type <- "Nonlinear relationship"
-violation_func <- sin
-# parameters <- c(0,1)
-num_predictors <- 1
-sigma_sq <- 1
-
-payload <- run_simulations(n_sims, n_samps, num_new_obsv, violation_type, violation_func, num_predictors, sigma_sq)
-
-show_diagnostics(payload)
+# n_sims <- 1
+# n_samps <- 100
+# num_new_obsv <- 10
+# violation_type <- "Nonlinear relationship"
+# violation_func <- sin
+# # parameters <- c(0,1)
+# num_predictors <- 1
+# sigma_sq <- 1
+# 
+# payload <- run_simulations(n_sims, n_samps, num_new_obsv, violation_type, violation_func, num_predictors, sigma_sq)
+# 
+# show_diagnostics(payload)
 ```
 
 # Questions
@@ -202,17 +202,17 @@ show_diagnostics(payload)
 
 
 ```{r}
-n_sims <- 100
-n_samps <- 100
-num_new_obsv <- 10
-violation_type <- "Nonlinear relationship"
-violation_func <- sin
-num_predictors <- 1
-sigma_sq <- 1
-
-payload <- run_simulations(n_sims, n_samps, num_new_obsv, violation_type, violation_func, num_predictors, sigma_sq)
-cat(violation_type, n_sims, n_samps, num_new_obsv, str(violation_func), num_predictors, sigma_sq)
-show_diagnostics(payload)
+# n_sims <- 100
+# n_samps <- 100
+# num_new_obsv <- 10
+# violation_type <- "Nonlinear relationship"
+# violation_func <- sin
+# num_predictors <- 1
+# sigma_sq <- 1
+# 
+# payload <- run_simulations(n_sims, n_samps, num_new_obsv, violation_type, violation_func, num_predictors, sigma_sq)
+# cat(violation_type, n_sims, n_samps, num_new_obsv, str(violation_func), num_predictors, sigma_sq)
+# show_diagnostics(payload)
 ```
 
         
@@ -437,7 +437,7 @@ random.func <- sample(c(poly_func, sin, exp, log), 1)
 n <- sample(20:5000, 1)
 random.violation <- sample(c("None","Nonlinear relationship"), 1)
 
-random_results <- run_simulations(num_runs, 
+random_results <- run_simulations(num_runs = 1, 
                                   n, 
                                   num_new_obsv, 
                                   violation =  random.violation,
@@ -563,27 +563,6 @@ show_diagnostics(poisson_large_results)
 ```
 
  TODO part e
-```{r}
-# Sample code to get started
-n <- n_large
-
-
-# TODO randomize this for part e
-b0 <- 10
-b1 <- 2
-eps_alpha <- 2
-eps_beta <- 1/4
-
-
-x <- runif(n, 0, 10)
-eps <- (rgamma(n, eps_alpha, 1/eps_beta) - eps_alpha * eps_beta) * 2
-y <- b0 - b1 * x + eps
-
-# hist(eps)
-var(eps)
-mean(eps)
-
-```
 
 3. Heterogeneous Variances
     a.	Simulate errors from a variety of different relationships with X (e.g. eps = 2 * sqrt(x))
@@ -645,18 +624,6 @@ show_diagnostics(hetero_var_large_results)
 ```
 
 TODO part e
-        
-```{r}
-# Sample code to get started
-# n <- 200
-# b0 <- 10
-# b1 <- 10
-# 
-# x <- runif(n, 0, 10)
-# eps <- rnorm(n, sd = 0.5 * x^2)
-# y <- b0 + b1 * x + eps
-
-```
 
 4. Correlated Errors
     a.	Simulate errors from a variety of different correlation structures.
