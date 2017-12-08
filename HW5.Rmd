@@ -193,6 +193,22 @@ show_diagnostics(payload)
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)  
         
+<<<<<<< HEAD
+=======
+```{r}
+n_sims <- 100
+n_samps <- 100
+num_new_obsv <- 10
+violation_type <- "Nonlinear relationship"
+violation_func <- sin
+num_predictors <- 1
+sigma_sq <- 1
+
+payload <- run_simulations(n_sims, n_samps, num_new_obsv, violation_type, violation_func, num_predictors, sigma_sq)
+cat(violation_type, n_sims, n_samps, num_new_obsv, str(violation_func), num_predictors, sigma_sq)
+show_diagnostics(payload)
+```
+>>>>>>> f2224a12681d56150d3f1550656ec23b190d7ffd
         
 __Aside:__ Many of the issues you end up facing with a nonlinear relationship can also be seen if an important predictor is excluded from the model. If you have extra time, feel free to play with this issue as well (optional).
 
