@@ -117,16 +117,8 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
   sim_results$bad_prediction_rate <- sim_results$bad_prediction_rate/(num_new_obsv*num_runs)
   sim_results[,2:6] <- sim_results[,2:6]/num_runs
 
-  
-  # see if I can get away with stashing lm inside sim
-  sim_results.lm <- my_lm
-  sim_results.x <- x
-  sim_results.y <- y
-  sim_results.eps <- eps
-  sim_results.y_hat_ci <- y_hat_ci
-  sim_results.exp_val_y <- exp_val_y
-  
-  return(sim_results)
+  payload <- list(sim_results=sim_results, lm_model=my_lm, x=x, y=y, eps=eps, y_hat_ci=y_hat_ci, exp_val_y=exp_val_y)
+  return(payload)
   
 }
 ```
@@ -134,16 +126,33 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
 
 
 ```{r show_diagnostics}
-show_diagnostics <- function(lm_model, xs, ys) {
-  summary(lm_model)
-  anova(lm_model)
-  plot(ys ~ xs)
+show_diagnostics <- function(payload) {
+  # unpack payload
+  list2env(payload, envir=environment())
+  #list[sim_results, lm_model, x, y, eps, y_hat_ci, exp_val_y] <- payload
+
+  # print() required inside function
+  print(summary(lm_model))
+  print(anova(lm_model))
+  plot(lm_model)
+  plot(y ~ x)
 abline(lm_model)
 #ggplot(yhat_medsine, aes(x =locations_medsine$x_med, y = fit)) +
 #geom_point(size = 4) +
 #geom_errorbar(aes(ymax = yhat_medsine$upr, ymin = #yhat_medsine$lwr))
 }
-show_diagnostics(my_lm, x, y)
+
+n_sims <- 10
+n_samps <- 100
+num_new_obsv <- 10
+violation_type <- "Nonlinear relationship"
+violation_func <- sin
+parameters <- c(0,1)
+sigma_sq <- 1
+
+payload <- run_simulations(n_sims, n_samps, num_new_obsv, violation_type, violation_func, parameters, sigma_sq)
+
+show_diagnostics(payload)
 ```
 
 # Questions
