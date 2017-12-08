@@ -725,6 +725,8 @@ corr_error_results_l <- rbind(small_samp = corr_error_small_results_l[[1]],
 corr_error_results_l
 ```
         
+D) I compared different sample sizes with different values of Rho, the level of correlation in the error terms. After running the simulations, several tasks were violated. Most notably, the value of the average MSE, which estimates the variance, in each case was far greater than the true value of $\sigma^2$= 4 when Rho = .9 and although not by much, when Rho =.2 the average MSE. In the case where Rho was set to .9, the true value of $\hat{y}$ was missing in over half of the simulations' confidence intervals. Similarly, the ratio of simulations that failed to capture the true intercept was greater than 30% at each sample size level. Another violation appeared in the ratio of simulations that found the intercept to be insignificant, in the small and medium sample sizes this condition was violated over 39% of the time. Despite these violations, the ratio of simulations that failed to include the true value of $\beta_{1}$ was very low, less than 10%. In addition, none of the simulations considered $\beta_{1}$ to be insignificant. Strangely, the simulations with a value of Rho = .2 and a small sample size failed to capture the true $\beta_{0}$ over 70% of the time.
+  
 5. Multicollinearity
     a.	Simulate predictors that are correlated with a variety of different correlation structures
     b.	Try simulations with a small sample size (e.g. 20), a medium sample size (e.g. n= 100), and a large sample size (e.g. n = 5000). 
