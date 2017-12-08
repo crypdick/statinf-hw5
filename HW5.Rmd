@@ -172,15 +172,9 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
 show_diagnostics <- function(payload) {
   # unpack payload
   list2env(payload, envir=environment())
-  #list[sim_results, lm_model, x, y, eps, y_hat_ci, exp_val_y] <- payload
-<<<<<<< HEAD
   
-  print(sim_results)
-  print("Diagnostic #1: Is the Regression Function Linear? ")
-=======
   writeLines("Diagnostic #1: Is the Regression Function Linear? ")
   #print("\n Diagnostic #1: Is the Regression Function Linear? ")
->>>>>>> 20afa7eac27828dcd5191cdf092922029fc5cfd5
   # print() required inside function
   #print(summary(lm_model))
   #print(anova(lm_model))
