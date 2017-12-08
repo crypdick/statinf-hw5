@@ -157,27 +157,34 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
 ```
 
 
-
 ```{r show_diagnostics}
 show_diagnostics <- function(payload) {
-  # unpack payload into this
+  # unpack payload
   list2env(payload, envir=environment())
+  #list[sim_results, lm_model, x, y, eps, y_hat_ci, exp_val_y] <- payload
 
-  # print out essentials
+  print("Diagnostic #1: Is the Regression Function Linear? ")
   # print() required inside function
-  print(sim_results)
   print(summary(lm_model))
   print(anova(lm_model))
-  
-  # plots
   plot(lm_model)
   plot(Y ~ X)
-abline(lm_model)
-#ggplot(yhat_medsine, aes(x =locations_medsine$x_med, y = fit)) +
-#geom_point(size = 4) +
-#geom_errorbar(aes(ymax = yhat_medsine$upr, ymin = #yhat_medsine$lwr))
-}
+  abline(lm_model)
 
+  print("Diagnostic #2: Do the Residuals Have Constant Variance")
+  
+  
+  
+  print("Diagnostic #3: Are the Residuals Normally Distributed?")
+  
+  
+  print("Diagnostic #4: Are the Residuals Independent?")
+  
+  
+   print("Diagnostic #5: Does the model fit all but one or a few outlier observations?")
+   
+  
+}
 ```
 
 # Questions
