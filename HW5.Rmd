@@ -25,57 +25,63 @@ require(ggplot2)
 ```{r run_sim}
 check_violations <- function(sample_size, orig_new_obsv, violation_name, violation_func, sigma_sq, orig_X) {
     
-    if (violation_name == "None") {
+  if (violation_name == "None") {
+    X <- orig_X
+    new_obsv <- orig_new_obsv
+    eps <- rnorm(sample_size, mean = 0, sd = sqrt(sigma_sq))
+    return(list(x,new_obsv,eps))
+  }
+  if (violation_name == "Nonlinear relationship") {
+    X <- violation_func(orig_X)
+    new_obsv <- violation_func(orig_new_obsv)
+    eps <- rnorm(sample_size, mean = 0, sd = sqrt(sigma_sq))
+    return(list(X,new_obsv,eps))
+  }
+  if (violation_name == "Non-normal errors") {
+    if (violation_func == "Gamma") {
       X <- orig_X
       new_obsv <- orig_new_obsv
-      eps <- rnorm(sample_size, mean = 0, sd = sqrt(sigma_sq))
-      return(list(x,new_obsv,eps))
-    }
-    if (violation_name == "Nonlinear relationship") {
-      X <- violation_func(orig_X)
-      new_obsv <- violation_func(orig_new_obsv)
-      eps <- rnorm(sample_size, mean = 0, sd = sqrt(sigma_sq))
+      eps_alpha <- 2
+      eps_beta <- 1/4
+      eps <- (rgamma(sample_size, shape = eps_alpha, scale = eps_beta) - eps_alpha * eps_beta) * 2
       return(list(X,new_obsv,eps))
     }
-    if (violation_name == "Non-normal errors") {
-      if (violation_func == "Gamma") {
-        X <- orig_X
-        new_obsv <- orig_new_obsv
-        eps_alpha <- 2
-        eps_beta <- 1/4
-        eps <- (rgamma(sample_size, shape = eps_alpha, scale = eps_beta) - eps_alpha * eps_beta) * 2
-        return(list(X,new_obsv,eps))
-      }
-      if (violation_func == "Poisson") {
-        X <- orig_X
-        new_obsv <- orig_new_obsv
-        lambda <- 4
-        eps <- (rpois(sample_size, lambda) - lambda) * 2
-        return(list(X,new_obsv,eps))
-      }
-    }
-    if (violation_name == "Heterogeneous variances"){
+    if (violation_func == "Poisson") {
       X <- orig_X
       new_obsv <- orig_new_obsv
-      eps <- rnorm(sample_size, mean = 0, sd = violation_func(X[,2]))
+      lambda <- 4
+      eps <- (rpois(sample_size, lambda) - lambda) * 2
       return(list(X,new_obsv,eps))
     }
+  }
+  if (violation_name == "Heterogeneous variances") {
+    X <- orig_X
+    new_obsv <- orig_new_obsv
+    eps <- rnorm(sample_size, mean = 0, sd = violation_func(X))
+    return(list(X,new_obsv,eps))
+  }
+  if (violation_name == "Multicolinearity") {
+    X <- unname(cbind(orig_X,violation_func(orig_X)))
+    new_obsv<- unname(cbind(orig_new_obsv,violation_func(orig_new_obsv)))
+    eps <- rnorm(sample_size, mean = 0, sd = sqrt(sigma_sq))
+    return(list(X,new_obsv,eps))
+  }
 }
 
 
 # function that will run simulations, violating a specific assumption
-run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, violation_func, parameters, sigma_sq) {
+run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, violation_func, num_predictors, sigma_sq) {
   
   sim_results <- data.frame(bad_prediction_rate = 0,
-                            bad_b0_rate = 0, 
-                            bad_b1_rate = 0, 
+                            bad_intercept_rate = 0, 
+                            bad_predictor_rate = 0, 
                             average_mse = 0, 
-                            insignificant_b0_rate = 0, 
-                            insignificant_b1_rate = 0)
+                            insignificant_intercept_rate = 0, 
+                            insignificant_predictor_rate = 0)
 
   # b0 <- parameters[1]
   # b1 <- parameters[2]
-  
+  parameters <- sample.int(10,num_predictors + 1)
   for (i in 1:num_runs) {
     X <- runif(sample_size, 0, 10)
     new_obsv <- runif(num_new_obsv, 0, 10)
@@ -85,26 +91,33 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     violated_new_obsv <- violated_data[[2]]
     eps <- violated_data[[3]]
     
+    # if (violation == "Multicolinearity") {
+    #   print("If works")
+    #   X <- violated_X
+    #   new_obsv <- violated_new_obsv
+    # }
+    
     # add in column of ones to capture beta0 when generating Y and expected value of Y
     Y <- (cbind(1,violated_X) %*% parameters) + eps
     exp_val_Y <- cbind(1,violated_new_obsv) %*% parameters
-    
     
     # fit a linear model using the simulated data
     my_lm <- lm(Y ~ X)
     
     # predict y for new values of x using the fitted linear model
-    y_hat_ci <- predict(my_lm, newdata = data.frame(x = new_obsv), interval = "confidence")
+    Y_hat_ci <- predict(my_lm, newdata = data.frame(X = new_obsv), interval = "confidence")
+    
     # check whether the confidence interval actually captures the expected value of y from the true model
-    bad_predictions <- num_new_obsv - sum((exp_val_y >= y_hat_ci[,2]) & (exp_val_y <= y_hat_ci[,3]))
+    bad_predictions <- num_new_obsv - sum((exp_val_Y >= Y_hat_ci[,2]) & (exp_val_Y <= Y_hat_ci[,3]))
     sim_results$bad_prediction_rate <- sim_results$bad_prediction_rate + bad_predictions
     
     # get confidence iterval for beta hat
     beta_ci <- confint(my_lm)
     # check whether the true value for the betas is caputured in the confidence interval
     good_betas <- ((parameters >= beta_ci[,1]) & (parameters <= beta_ci[,2]))
-    if (good_betas[1] == FALSE) sim_results$bad_b0_rate <- sim_results$bad_b0_rate + 1
-    if (good_betas[2] == FALSE) sim_results$bad_b1_rate <- sim_results$bad_b1_rate + 1
+    if (good_betas[1] == FALSE) sim_results$bad_intercept_rate <- sim_results$bad_intercept_rate + 1
+    if (sum(good_betas[-1] == FALSE) >= 1) 
+      {sim_results$bad_predictor_rate <- sim_results$bad_predictor_rate + sum(good_betas[-1] == FALSE)}
     
     # add the mse to the sum of MSE for all runs (to be averaged at the end)
     sim_results$average_mse <- sim_results$average_mse + (anova(my_lm)$'Mean Sq'[2])
@@ -112,11 +125,14 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     
     # check which beta_hats are significant based on the p-values
     p_vals <- summary(my_lm)$coeff[,4]
-    if (p_vals[1] > .05) sim_results$insignificant_b0_rate <- sim_results$insignificant_b0_rate + 1
-    if (p_vals[2] > .05) sim_results$insignificant_b1_rate <- sim_results$insignificant_b1_rate + 1
+    if (p_vals[1] > .05) sim_results$insignificant_intercept_rate <- sim_results$insignificant_intercept_rate + 1
+    if (sum(p_vals[-1] > .05) >= 1) 
+      {sim_results$insignificant_predictor_rate <- sim_results$insignificant_predictor_rate + sum(p_vals[-1] > .05)}
   }
-  sim_results$bad_prediction_rate <- sim_results$bad_prediction_rate/(num_new_obsv*num_runs)
-  sim_results[,2:6] <- sim_results[,2:6]/num_runs
+  sim_results <- sim_results/num_runs
+  sim_results$bad_prediction_rate <- sim_results$bad_prediction_rate/(num_new_obsv)
+  sim_results$insignificant_predictor_rate <- sim_results$bad_predictor_rate/(num_predictors)
+  sim_results$insignificant_predictor_rate <- sim_results$insignificant_predictor_rate/(num_predictors)
 
   return(sim_results)
   
@@ -138,21 +154,7 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)  
         
-```{r}
-#part e, name the normal func & nonnormal func & randomly call it
-my.simulation <- function(n, b0, b1){
-  choices.simulation <- c("normal", "nonnormal")
-  random.choice <- sample(choices.simulation, 1)
-  if (random.choice == "normal"){
-    return(normal_func)
-  }
-  else{
-    return(nonnormal_func)
-  }
-}
-```
         
-
 __Aside:__ Many of the issues you end up facing with a nonlinear relationship can also be seen if an important predictor is excluded from the model. If you have extra time, feel free to play with this issue as well (optional).
 
 
@@ -162,13 +164,13 @@ set.seed(1)
 n_small <- 20
 n_med <- 100
 n_large <- 5000
-locations <- c(-10:10)*10
 ```
 
 ```{r non_linear_relationship}
 num_runs <- 100
 num_new_obsv <- 20
-parameters <- c(10,2)
+# parameters <- c(10,2)
+num_predictors <- 1
 sigma_sq <- 4
 ```
 
@@ -180,7 +182,7 @@ poly_small_results <- run_simulations(num_runs,
                                       num_new_obsv, 
                                       violation = "Nonlinear relationship", 
                                       violation_func = poly_func, 
-                                      parameters, 
+                                      num_predictors, 
                                       sigma_sq)
 
 poly_med_results <-run_simulations(num_runs,
@@ -188,7 +190,7 @@ poly_med_results <-run_simulations(num_runs,
                                    num_new_obsv, 
                                    violation =  "Nonlinear relationship", 
                                    violation_func = poly_func, 
-                                   parameters, 
+                                   num_predictors, 
                                    sigma_sq)
 
 poly_large_results <-run_simulations(num_runs, 
@@ -196,7 +198,7 @@ poly_large_results <-run_simulations(num_runs,
                                      num_new_obsv, 
                                      violation =  "Nonlinear relationship", 
                                      violation_func = poly_func, 
-                                     parameters, 
+                                     num_predictors, 
                                      sigma_sq)
 polynomial_results <- rbind(small_samp = poly_small_results, 
                             med_samp = poly_med_results, 
@@ -210,7 +212,7 @@ exp_small_results <- run_simulations(num_runs,
                                      num_new_obsv, 
                                      violation =  "Nonlinear relationship", 
                                      violation_func = exp, 
-                                     parameters, 
+                                     num_predictors, 
                                      sigma_sq)
 
 exp_med_results <-run_simulations(num_runs, 
@@ -218,7 +220,7 @@ exp_med_results <-run_simulations(num_runs,
                                   num_new_obsv, 
                                   violation =  "Nonlinear relationship",
                                   violation_func = exp, 
-                                  parameters, 
+                                  num_predictors, 
                                   sigma_sq)
 
 exp_large_results <-run_simulations(num_runs,
@@ -226,7 +228,7 @@ exp_large_results <-run_simulations(num_runs,
                                     num_new_obsv, 
                                     violation =  "Nonlinear relationship", 
                                     violation_func = exp, 
-                                    parameters, 
+                                    num_predictors, 
                                     sigma_sq)
 
 exponential_results <- rbind(small_samp = exp_small_results,
@@ -241,7 +243,7 @@ sin_small_results <- run_simulations(num_runs,
                                      num_new_obsv, 
                                      violation =  "Nonlinear relationship", 
                                      violation_func = sin, 
-                                     parameters, 
+                                     num_predictors, 
                                      sigma_sq)
 
 sin_med_results <- run_simulations(num_runs, 
@@ -249,7 +251,7 @@ sin_med_results <- run_simulations(num_runs,
                                    num_new_obsv, 
                                    violation =  "Nonlinear relationship", 
                                    violation_func = sin, 
-                                   parameters, 
+                                   num_predictors, 
                                    sigma_sq)
 
 sin_large_results <- run_simulations(num_runs, 
@@ -257,7 +259,7 @@ sin_large_results <- run_simulations(num_runs,
                                      num_new_obsv, 
                                      violation =  "Nonlinear relationship", 
                                      violation_func = sin, 
-                                     parameters, 
+                                     num_predictors, 
                                      sigma_sq)
 
 sinusoidal_results <- rbind(small_samp = sin_small_results, 
@@ -272,7 +274,7 @@ log_small_results <- run_simulations(num_runs,
                                      num_new_obsv, 
                                      violation =  "Nonlinear relationship", 
                                      violation_func = log,
-                                     parameters, 
+                                     num_predictors, 
                                      sigma_sq)
 
 log_med_results <- run_simulations(num_runs, 
@@ -280,7 +282,7 @@ log_med_results <- run_simulations(num_runs,
                                    num_new_obsv, 
                                    violation =  "Nonlinear relationship", 
                                    violation_func = log, 
-                                   parameters, 
+                                   num_predictors, 
                                    sigma_sq)
 
 log_large_results <- run_simulations(num_runs, 
@@ -288,7 +290,7 @@ log_large_results <- run_simulations(num_runs,
                                      num_new_obsv, 
                                      violation =  "Nonlinear relationship", 
                                      violation_func = log, 
-                                     parameters, 
+                                     num_predictors, 
                                      sigma_sq)
 
 logarithmic_results <- rbind(small_samp = log_small_results, 
@@ -296,277 +298,22 @@ logarithmic_results <- rbind(small_samp = log_small_results,
                              large_samp = log_large_results)
 logarithmic_results
 ```
-
-## **POLYNOMIAL** 
-```{r}
-# TODO: randomize these for part e
-b0 <- 10
-b1 <- 2
-
-# small sample size
-x_smallpoly <- runif(n_small, 0, 10)
-eps_smallpoly <- 3 * rnorm(n_small)
-y_smallpoly <- b0 - b1 * (x_smallpoly - 5)^2 + eps_smallpoly
-
-
-# med sample size
-x_medpoly <- runif(n_med, 0, 10)
-eps_medpoly <- 3 * rnorm(n_med)
-y_medpoly <- b0 - b1 * (x_medpoly - 5)^2 + eps_medpoly
-
-# lrg sample size
-x_largepoly <- runif(n_large, 0, 10)
-eps_largepoly <- 3 *rnorm(n_large)
-y_largepoly <- b0 - b1 * (x_largepoly - 5)^2 + eps_largepoly
-
-y_test <- b0 + b1 *x_largepoly + eps_largepoly
-lm_test <- lm(y_test ~ x_largepoly)
-anova(lm_test)
-# part c, for each simulation:
-# predict y-hat at several different locations using a confidence interval
-locations_smallpoly <- data.frame(x_smallpoly = locations)
-
-lm_smallpoly <- lm(y_smallpoly ~ x_smallpoly)
-yhat_smallpoly <- predict.lm(lm_smallpoly, newdata=locations_smallpoly, interval="confidence") # predict y_hat
-(yhat_smallpoly)
-summary(lm_smallpoly)$coef  # model coefficients
-(confint(lm_smallpoly))
-(anova(lm_smallpoly)$'Mean Sq'[2]) # MSE
-(summary(lm_smallpoly)$coeff[,4]) # p-vals of our coeffs
-```
-Neither of the betas are significant, since they both have p values > 0.05.
-
-```{r}
-locations_medpoly <- data.frame(x_medpoly = locations)
-lm_medpoly <- lm(y_medpoly ~ x_medpoly)
-yhat_medpoly <- predict.lm(lm_medpoly, newdata=locations_medpoly, interval="confidence")
-(yhat_medpoly)
-summary(lm_medpoly)$coef
-(confint(lm_medpoly))
-(anova(lm_medpoly)$'Mean Sq'[2])
-(summary(lm_medpoly)$coeff[,4])
-```
-Again, neither of the betas are significant, since they both have p values > 0.05.
-
-
-```{r}
-locations_largepoly <- data.frame(x_largepoly = locations)
-lm_largepoly <- lm(y_largepoly ~ x_largepoly)
-yhat_largepoly <- predict.lm(lm_largepoly, newdata=locations_largepoly, interval="confidence")
-```
-
-```{r}
-summary(lm_largepoly)$coef
-(confint(lm_largepoly))
-(anova(lm_largepoly)$'Mean Sq'[2])
-(summary(lm_largepoly)$coeff[,4])
-```
-This time, both coefficients are very significant!
-
-
-```{r}
-yhat_smallpoly <- data.frame(yhat_smallpoly)
-
-ggplot(yhat_smallpoly, aes(x =locations_smallpoly$x_smallpoly, y = fit)) +
-  geom_point(size = 4) +
-  geom_errorbar(aes(ymax = yhat_smallpoly$upr, ymin = yhat_smallpoly$lwr))
-
-
-yhat_medpoly <- data.frame(yhat_medpoly)
-
-ggplot(yhat_medpoly, aes(x =locations_medpoly$x_med, y = fit)) +
-  geom_point(size = 4) +
-  geom_errorbar(aes(ymax = yhat_medpoly$upr, ymin = yhat_medpoly$lwr))
-
-
-yhat_largepoly <- data.frame(yhat_largepoly)
-
-ggplot(yhat_largepoly, aes(x =locations_largepoly$x_large, y = fit)) +
-  geom_point(size = 4) +
-  geom_errorbar(aes(ymax = yhat_largepoly$upr, ymin = yhat_largepoly$lwr))
-```
-Changing the sample size changed:
-The confidence intervals become tighter. TODO expand.
-
-## **EXPONENTIAL**
-```{r}
-# TODO: randomize these for part e
-b0 <- 10
-b1 <- 2
-
-# small sample size
-x_smallexp <- runif(n_small, 0, 10)
-eps_smallexp <- 3 * rnorm(n_small)
-y_smallexp <- b0 - b1 * exp(x_smallexp) + eps_smallexp
-
-
-# med sample size
-x_medexp <- runif(n_med, 0, 10)
-eps_medexp <- 3 * rnorm(n_med)
-y_medexp <- b0 - b1 * exp(x_medexp) + eps_medexp
-
-# lrg sample size
-x_largeexp <- runif(n_large, 0, 10)
-eps_largeexp <- 3 * rnorm(n_large)
-y_largeexp <- b0 - b1 * exp(x_largeexp) + eps_largeexp
-
-# part c, for each simulation:
-# predict y-hat at several different locations using a confidence interval.
-locations_smallexp <- data.frame(x_smallexp = locations)
-
-lm_smallexp <- lm(y_smallexp ~ x_smallexp)
-yhat_smallexp <- predict.lm(lm_smallexp, newdata=locations_smallexp, interval="confidence") # predict y_hat
-
-summary(lm_smallexp)$coef  # model coefficients
-(confint(lm_smallexp))
-(anova(lm_smallexp)$'Mean Sq'[2]) # MSE
-(summary(lm_smallexp)$coeff[,4])  # p-vals of our coeffs
-```
-TODO beta p-vals
-
-```{r}
-locations_medexp <- data.frame(x_medexp = locations)
-lm_medexp <- lm(y_medexp ~ x_medexp)
-yhat_medexp <- predict.lm(lm_medexp, newdata=locations_medexp, interval="confidence")
-(yhat_medexp)
-summary(lm_medexp)$coef
-(confint(lm_medexp))
-(anova(lm_medexp)$'Mean Sq'[2])
-(summary(lm_medexp)$coeff[,4])
-```
-TODO beta p-vals
-
-
-```{r}
-locations_largeexp <- data.frame(x_largeexp = locations)
-lm_largeexp <- lm(y_largeexp ~ x_largeexp)
-yhat_largeexp <- predict.lm(lm_largeexp, newdata=locations_largeexp, interval="confidence")
-```
-
-```{r}
-summary(lm_largeexp)$coef
-(confint(lm_largeexp))
-(anova(lm_largeexp)$'Mean Sq'[2])
-(summary(lm_largeexp)$coeff[,4])
-```
-TODO coeff significance
-
-
-```{r}
-yhat_smallexp <- data.frame(yhat_smallexp)
-
-ggplot(yhat_smallexp, aes(x =locations_smallexp$x_smallexp, y = fit)) +
-  geom_point(size = 4) +
-  geom_errorbar(aes(ymax = yhat_smallexp$upr, ymin = yhat_smallexp$lwr))
-
-
-yhat_medexp <- data.frame(yhat_medexp)
-
-ggplot(yhat_medexp, aes(x =locations_medexp$x_med, y = fit)) +
-  geom_point(size = 4) +
-  geom_errorbar(aes(ymax = yhat_medexp$upr, ymin = yhat_medexp$lwr))
-
-
-yhat_largeexp <- data.frame(yhat_largeexp)
-
-ggplot(yhat_largeexp, aes(x =locations_largeexp$x_large, y = fit)) +
-  geom_point(size = 4) +
-  geom_errorbar(aes(ymax = yhat_largeexp$upr, ymin = yhat_largeexp$lwr))
-```
-Changing the sample size changed:
-TODO
-
-
-## **SINUSOIDAL**
-```{r}
-# TODO: randomize these for part e
-b0 <- 0
-b1 <- 20*pi
-
-# small sample size
-x_smallsine <- runif(n_small, 0, 10)
-eps_smallsine <- 3 * rnorm(n_small)
-y_smallsine <- b0 + b1 * sin(x_smallsine) + eps_smallsine
-
-
-# med sample size
-x_medsine <- runif(n_med, 0, 10)
-eps_medsine <- 3 * rnorm(n_med)
-y_medsine <- b0 - b1 * sin(x_medsine) + eps_medsine
-
-# lrg sample size
-x_largesine <- runif(n_large, 0, 10)
-eps_largesine <- 3 * rnorm(n_large)
-y_largesine <- b0 - b1 * sin(x_largesine) + eps_largesine
-
-# part c, for each simulation:
-# predict y-hat at several different locations using a confidence interval.
-locations_smallsine <- data.frame(x_smallsine = locations)
-
-lm_smallsine <- lm(y_smallsine ~ x_smallsine)
-yhat_smallsine <- predict.lm(lm_smallsine, newdata=locations_smallsine, interval="confidence") # predict y_hat
-
-summary(lm_smallsine)$coef  # model coefficients
-(confint(lm_smallsine))
-(anova(lm_smallsine)$'Mean Sq'[2]) # MSE
-(summary(lm_smallsine)$coeff[,4])  # p-vals of our coeffs
-```
-TODO beta p-vals
-
-```{r}
-locations_medsine <- data.frame(x_medsine = locations)
-lm_medsine <- lm(y_medsine ~ x_medsine)
-yhat_medsine <- predict.lm(lm_medsine, newdata=locations_medsine, interval="confidence")
-(yhat_medsine)
-summary(lm_medsine)$coef
-(confint(lm_medsine))
-(anova(lm_medsine)$'Mean Sq'[2])
-(summary(lm_medsine)$coeff[,4])
-```
-TODO beta p-vals
-
-
-```{r}
-locations_largesine <- data.frame(x_largesine = locations)
-lm_largesine <- lm(y_largesine ~ x_largesine)
-yhat_largesine <- predict.lm(lm_largesine, newdata=locations_largesine, interval="confidence")
-```
-
-```{r}
-summary(lm_largesine)$coef
-(confint(lm_largesine))
-(anova(lm_largesine)$'Mean Sq'[2])
-(summary(lm_largesine)$coeff[,4])
-```
-TODO coeff significance
-
-
-```{r}
-yhat_smallsine <- data.frame(yhat_smallsine)
-
-ggplot(yhat_smallsine, aes(x =locations_smallsine$x_smallsine, y = fit)) +
-  geom_point(size = 4) +
-  geom_errorbar(aes(ymax = yhat_smallsine$upr, ymin = yhat_smallsine$lwr))
-
-
-yhat_medsine <- data.frame(yhat_medsine)
-
-ggplot(yhat_medsine, aes(x =locations_medsine$x_med, y = fit)) +
-  geom_point(size = 4) +
-  geom_errorbar(aes(ymax = yhat_medsine$upr, ymin = yhat_medsine$lwr))
-
-
-yhat_largesine <- data.frame(yhat_largesine)
-
-ggplot(yhat_largesine, aes(x =locations_largesine$x_large, y = fit)) +
-  geom_point(size = 4) +
-  geom_errorbar(aes(ymax = yhat_largesine$upr, ymin = yhat_largesine$lwr))
-```
-Changing the sample size changed:
 TODO
 
 ## PART E
-
+```{r}
+#part e, name the normal func & nonnormal func & randomly call it
+my.simulation <- function(n, b0, b1){
+  choices.simulation <- c("normal", "nonnormal")
+  random.choice <- sample(choices.simulation, 1)
+  if (random.choice == "normal"){
+    return(normal_func)
+  }
+  else{
+    return(nonnormal_func)
+  }
+}
+```
 
 2.	Non-normal errors
     a.	Simulate errors from a variety of different non-normal distributions (e.g. gamma, poisson). Make sure to shift the errors over so that they are still centered at 0.
@@ -589,7 +336,7 @@ gamma_small_results <- run_simulations(num_runs,
                                      num_new_obsv, 
                                      violation =  "Non-normal errors", 
                                      violation_func = "Gamma",
-                                     parameters, 
+                                     num_predictors, 
                                      sigma_sq)
 
 gamma_med_results <- run_simulations(num_runs, 
@@ -597,7 +344,7 @@ gamma_med_results <- run_simulations(num_runs,
                                    num_new_obsv, 
                                    violation =  "Non-normal errors", 
                                    violation_func = "Gamma", 
-                                   parameters, 
+                                   num_predictors, 
                                    sigma_sq)
 
 gamma_large_results <- run_simulations(num_runs, 
@@ -605,7 +352,7 @@ gamma_large_results <- run_simulations(num_runs,
                                      num_new_obsv, 
                                      violation =  "Non-normal errors", 
                                      violation_func = "Gamma", 
-                                     parameters, 
+                                     num_predictors, 
                                      sigma_sq)
 
 gamma_results <- rbind(small_samp = gamma_small_results, 
@@ -643,7 +390,7 @@ poisson_small_results <- run_simulations(num_runs,
                                      num_new_obsv, 
                                      violation =  "Non-normal errors", 
                                      violation_func = "Poisson",
-                                     parameters, 
+                                     num_predictors, 
                                      sigma_sq)
 
 poisson_med_results <- run_simulations(num_runs, 
@@ -651,7 +398,7 @@ poisson_med_results <- run_simulations(num_runs,
                                    num_new_obsv, 
                                    violation =  "Non-normal errors", 
                                    violation_func = "Poisson", 
-                                   parameters, 
+                                   num_predictors, 
                                    sigma_sq)
 
 poisson_large_results <- run_simulations(num_runs, 
@@ -659,7 +406,7 @@ poisson_large_results <- run_simulations(num_runs,
                                      num_new_obsv, 
                                      violation =  "Non-normal errors", 
                                      violation_func = "Poisson", 
-                                     parameters, 
+                                     num_predictors, 
                                      sigma_sq)
 
 poisson_results <- rbind(small_samp = poisson_small_results, 
@@ -704,7 +451,7 @@ hetero_var_small_results <- run_simulations(num_runs,
                                      num_new_obsv, 
                                      violation =  "Heterogeneous variances", 
                                      violation_func = poly_func, 
-                                     parameters, 
+                                     num_predictors, 
                                      sigma_sq)
 
 hetero_var_med_results <-run_simulations(num_runs, 
@@ -712,7 +459,7 @@ hetero_var_med_results <-run_simulations(num_runs,
                                   num_new_obsv, 
                                   violation =  "Heterogeneous variances",
                                   violation_func = poly_func, 
-                                  parameters, 
+                                  num_predictors, 
                                   sigma_sq)
 
 hetero_var_large_results <-run_simulations(num_runs,
@@ -720,7 +467,7 @@ hetero_var_large_results <-run_simulations(num_runs,
                                     num_new_obsv, 
                                     violation =  "Heterogeneous variances", 
                                     violation_func = poly_func, 
-                                    parameters, 
+                                    num_predictors, 
                                     sigma_sq)
 
 hetero_var_results <- rbind(small_samp = hetero_var_small_results,
@@ -783,6 +530,38 @@ y <- b0 + b1 * x + eps
         i. Have R randomly choose whether to simulate data with correlated or uncorrelated predictor variables (X).
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)
+```{r}
+# add_noise <- function(x) x + rnorm(length(x))
+# num_predictors <- 2
+# multicolinearity_small_results <- run_simulations(num_runs,
+#                                      n_small, 
+#                                      num_new_obsv, 
+#                                      violation =  "Multicolinearity", 
+#                                      violation_func = add_noise, 
+#                                      num_predictors, 
+#                                      sigma_sq)
+# 
+# multicolinearity_med_results <- run_simulations(num_runs,
+#                                      n_med, 
+#                                      num_new_obsv, 
+#                                      violation =  "Multicolinearity", 
+#                                      violation_func = add_noise, 
+#                                      num_predictors, 
+#                                      sigma_sq)
+# 
+# multicolinearity_large_results <- run_simulations(num_runs,
+#                                      n_large, 
+#                                      num_new_obsv, 
+#                                      violation =  "Multicolinearity", 
+#                                      violation_func = add_noise, 
+#                                      num_predictors, 
+#                                      sigma_sq)
+# 
+# multicolinearity_results <- rbind(small_samp = multicolinearity_small_results,
+#                              med_samp = multicolinearity_med_results, 
+#                              large_samp = multicolinearity_large_results)
+# multicolinearity_results
+```
 
 ```{r}
 n <- 20
