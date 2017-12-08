@@ -1,5 +1,5 @@
 ---
-title: "FRONT ROW CREW - Homework 5"
+title: "Homework 5"
 author: "Statistical Inference 1"
 date: "11/22/2017"
 output:
@@ -85,6 +85,7 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
   }
 }
 
+
 # function that will run simulations, violating a specific assumption
 run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, violation_func, num_predictors, sigma_sq) {
   
@@ -106,7 +107,7 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     violated_new_obsv <- violated_data[[2]]
     eps <- violated_data[[3]]
     
-    # TODO: make this not break plot_diagnostics
+    # TODO: make this not break show_diagnostics
     # if (violation == "Multicolinearity") {
     #   X <- violated_X
     #   new_obsv <- violated_new_obsv
@@ -178,18 +179,21 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
 ```
 
 
-```{r plot_diagnostics}
-plot_diagnostics <- function(payload) {
+```{r show_diagnostics}
+show_diagnostics <- function(payload) {
   # unpack payload
   list2env(payload, envir=environment())
-  # TODO check dims of X to make sure that we don't get errors inc ase of multicollinearity (more than one predictor var)
-  # TODO if so, call pairs()
+  #list[sim_results, lm_model, x, y, eps, y_hat_ci, exp_val_y] <- payload
   writeLines("Diagnostic #1: Is the Regression Function Linear? ")
   #print("\n Diagnostic #1: Is the Regression Function Linear? ")
+  # print() required inside function
+  #print(summary(lm_model))
+  #print(anova(lm_model))
   #plot(lm_model)
   plot(Y ~ X)
   abline(lm_model)
   #pairs()
+  
 
   writeLines("Diagnostic #2: Do the Residuals Have Constant Variance?\n\n Does the plot appear to be a general cloud of points or is there a megaphone shape?")
   plot(lm_model, which = 1) 
@@ -206,29 +210,10 @@ plot_diagnostics <- function(payload) {
   
   
   # writeLines("Diagnostic #5: Does the model fit all but one or a few outlier observations?")
+   
 }
+
 ```
-
-```{r summary_diagnostics}
-summary_diagnostics <- function(payload) {
-  # unpack payload
-  list2env(payload, envir=environment())
-  
-  # print() required inside function
-  print(summary(lm_model))
-  print(anova(lm_model))
-}
-```
-
-
-```{r advanced_diagnostics}
-# TODO advanced_diagnostics
-advanced_diagnostics <- function(payload) {
-  # unpack payload
-  list2env(payload, envir=environment())
-}
-```
-
 
 
 # Questions
@@ -263,7 +248,7 @@ advanced_diagnostics <- function(payload) {
 # 
 # payload <- run_simulations(n_sims, n_samps, num_new_obsv, violation_type, violation_func, num_predictors, sigma_sq)
 # cat(violation_type, n_sims, n_samps, num_new_obsv, str(violation_func), num_predictors, sigma_sq)
-# plot_diagnostics(payload)
+# show_diagnostics(payload)
 ```
         
 __Aside:__ Many of the issues you end up facing with a nonlinear relationship can also be seen if an important predictor is excluded from the model. If you have extra time, feel free to play with this issue as well (optional).
@@ -391,12 +376,6 @@ log_large_results <- run_simulations(num_runs,
 
 ```
 
-# QUESTION TEMPLATES
-
-TODO template for part D
-
-TODO template for part E
-
 
 ## PART E
 TODO write interpretation
@@ -419,7 +398,7 @@ random_results1[[1]]
 
 
 ```{r}
-plot_diagnostics(random_results1)
+show_diagnostics(random_results1)
 ```
 
 
@@ -547,7 +526,7 @@ random_results2[[1]]
 
 
 ```{r}
-plot_diagnostics(random_results2)
+show_diagnostics(random_results2)
 ```
 
 3. Heterogeneous Variances
@@ -634,7 +613,7 @@ random_results3[[1]]
 ```
 
 ```{r}
-#plot_diagnostics(random_results3)
+#show_diagnostics(random_results3)
 ```
 
 
@@ -678,9 +657,9 @@ corr_error_large_results_h <-run_simulations(num_runs,
                                     num_predictors, 
                                     sigma_sq)
 
-corr_error_results_h <- rbind(small_samp = hetero_var_small_results[[1]],
-                             med_samp = hetero_var_med_results[[1]], 
-                             large_samp = hetero_var_large_results[[1]])
+corr_error_results_h <- rbind(small_samp = corr_error_small_results_h[[1]],
+                             med_samp = corr_error_med_results_h[[1]], 
+                             large_samp = corr_error_large_results_h[[1]])
 corr_error_results_h
 
 #correlated errors with rho of .3
@@ -708,9 +687,9 @@ corr_error_large_results_l <-run_simulations(num_runs,
                                     num_predictors, 
                                     sigma_sq)
 
-corr_error_results_l <- rbind(small_samp = hetero_var_small_results[[1]],
-                             med_samp = hetero_var_med_results[[1]], 
-                             large_samp = hetero_var_large_results[[1]])
+corr_error_results_l <- rbind(small_samp = corr_error_small_results_l[[1]],
+                             med_samp = corr_error_med_results_l[[1]], 
+                             large_samp = corr_error_large_results_l[[1]])
 corr_error_results_l
 ```
         
@@ -782,7 +761,7 @@ random_results5[[1]]
 ```
 
 ```{r}
-#plot_diagnostics(random_results5)
+#show_diagnostics(random_results5)
 ```
     
 
