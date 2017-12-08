@@ -97,7 +97,7 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     # predict y for new values of x using the fitted linear model
     y_hat_ci <- predict(my_lm, newdata = data.frame(x = new_obsv), interval = "confidence")
     # check whether the confidence interval actually captures the expected value of y from the true model
-    bad_predictions <- num_new_obsv - sum((exp_val_y >= y_hat_ci[,2]) & (exp_val_y <= y_hat_ci[,3]))
+    bad_predictions <- num_new_obsv - sum((exp_val_Y >= y_hat_ci[,2]) & (exp_val_Y <= y_hat_ci[,3]))
     sim_results$bad_prediction_rate <- sim_results$bad_prediction_rate + bad_predictions
     
     # get confidence iterval for beta hat
@@ -119,7 +119,7 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
   sim_results$bad_prediction_rate <- sim_results$bad_prediction_rate/(num_new_obsv*num_runs)
   sim_results[,2:6] <- sim_results[,2:6]/num_runs
 
-  payload <- list(sim_results=sim_results, lm_model=my_lm, x=x, y=y, eps=eps, y_hat_ci=y_hat_ci, exp_val_y=exp_val_y)
+  payload <- list(sim_results=sim_results, lm_model=my_lm, X=X, Y=Y, eps=eps, y_hat_ci=y_hat_ci, exp_val_Y=exp_val_Y)
   return(payload)
   
 }
@@ -129,13 +129,16 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
 
 ```{r show_diagnostics}
 show_diagnostics <- function(payload) {
-  # unpack payload
+  # unpack payload into this
   list2env(payload, envir=environment())
-  #list[sim_results, lm_model, x, y, eps, y_hat_ci, exp_val_y] <- payload
 
+  # print out essentials
   # print() required inside function
+  print(sim_results)
   print(summary(lm_model))
   print(anova(lm_model))
+  
+  # plots
   plot(lm_model)
   plot(y ~ x)
 abline(lm_model)
@@ -143,18 +146,6 @@ abline(lm_model)
 #geom_point(size = 4) +
 #geom_errorbar(aes(ymax = yhat_medsine$upr, ymin = #yhat_medsine$lwr))
 }
-
-n_sims <- 10
-n_samps <- 100
-num_new_obsv <- 10
-violation_type <- "Nonlinear relationship"
-violation_func <- sin
-parameters <- c(0,1)
-sigma_sq <- 1
-
-payload <- run_simulations(n_sims, n_samps, num_new_obsv, violation_type, violation_func, parameters, sigma_sq)
-
-show_diagnostics(payload)
 ```
 
 # Questions
@@ -174,17 +165,17 @@ show_diagnostics(payload)
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)  
         
 ```{r}
-#part e, name the normal func & nonnormal func & randomly call it
-my.simulation <- function(n, b0, b1){
-  choices.simulation <- c("normal", "nonnormal")
-  random.choice <- sample(choices.simulation, 1)
-  if (random.choice == "normal"){
-    return(normal_func)
-  }
-  else{
-    return(nonnormal_func)
-  }
-}
+n_sims <- 100
+n_samps <- 100
+num_new_obsv <- 10
+violation_type <- "Nonlinear relationship"
+violation_func <- sin
+parameters <- c(0,1)
+sigma_sq <- 1
+
+payload <- run_simulations(n_sims, n_samps, num_new_obsv, violation_type, violation_func, parameters, sigma_sq)
+#cat(violation_type, n_sims, n_samps, num_new_obsv, str(violation_func), parameters, sigma_sq)
+show_diagnostics(payload)
 ```
         
 
