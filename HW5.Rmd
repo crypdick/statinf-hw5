@@ -83,7 +83,7 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
 
   # b0 <- parameters[1]
   # b1 <- parameters[2]
-  parameters <- sample.int(10,num_predictors + 1)
+  parameters <- sample.int(10, num_predictors + 1)
   for (i in 1:num_runs) {
     X <- runif(sample_size, 0, 10)
     new_obsv <- runif(num_new_obsv, 0, 10)
@@ -267,6 +267,13 @@ poly_large_results <-run_simulations(num_runs,
 ```
 
 ```{r}
+polynomial_results <- rbind(small_samp = poly_small_results[[1]], 
+                            med_samp = poly_med_results[[1]], 
+                            large_samp = poly_large_results[[1]])
+polynomial_results
+```
+
+```{r}
 show_diagnostics(poly_small_results)
 ```
 
@@ -279,14 +286,6 @@ show_diagnostics(poly_med_results)
 show_diagnostics(poly_large_results)
 ```
 
-
-```{r}
-polynomial_results <- rbind(small_samp = poly_small_results[[1]], 
-                            med_samp = poly_med_results[[1]], 
-                            large_samp = poly_large_results[[1]])
-polynomial_results
-```
-
 ## **EXPONENTIAL**
 ```{r exponential_relationship}
 exp_small_results <- run_simulations(num_runs,
@@ -295,7 +294,7 @@ exp_small_results <- run_simulations(num_runs,
                                      violation =  "Nonlinear relationship", 
                                      violation_func = exp, 
                                      num_predictors, 
-                                     sigma_sq)[[1]]
+                                     sigma_sq)
 
 exp_med_results <-run_simulations(num_runs, 
                                   n_med, 
@@ -303,7 +302,7 @@ exp_med_results <-run_simulations(num_runs,
                                   violation =  "Nonlinear relationship",
                                   violation_func = exp, 
                                   num_predictors, 
-                                  sigma_sq)[[1]]
+                                  sigma_sq)
 
 exp_large_results <-run_simulations(num_runs,
                                     n_large, 
@@ -311,13 +310,28 @@ exp_large_results <-run_simulations(num_runs,
                                     violation =  "Nonlinear relationship", 
                                     violation_func = exp, 
                                     num_predictors, 
-                                    sigma_sq)[[1]]
+                                    sigma_sq)
+```
 
-exponential_results <- rbind(small_samp = exp_small_results,
-                             med_samp = exp_med_results, 
-                             large_samp = exp_large_results)
+```{r}
+exponential_results <- rbind(small_samp = exp_small_results[[1]],
+                             med_samp = exp_med_results[[1]], 
+                             large_samp = exp_large_results[[1]])
 exponential_results
 ```
+
+```{r}
+show_diagnostics(exp_small_results)
+```
+
+```{r}
+show_diagnostics(exp_med_results)
+```
+
+```{r}
+show_diagnostics(exp_large_results)
+```
+
 ## **SINUSOIDAL**
 ```{r sinusoidal_relationship}
 sin_small_results <- run_simulations(num_runs, 
@@ -326,7 +340,7 @@ sin_small_results <- run_simulations(num_runs,
                                      violation =  "Nonlinear relationship", 
                                      violation_func = sin, 
                                      num_predictors, 
-                                     sigma_sq)[[1]]
+                                     sigma_sq)
 
 sin_med_results <- run_simulations(num_runs, 
                                    n_med, 
@@ -334,7 +348,7 @@ sin_med_results <- run_simulations(num_runs,
                                    violation =  "Nonlinear relationship", 
                                    violation_func = sin, 
                                    num_predictors, 
-                                   sigma_sq)[[1]]
+                                   sigma_sq)
 
 sin_large_results <- run_simulations(num_runs, 
                                      n_large, 
@@ -342,13 +356,29 @@ sin_large_results <- run_simulations(num_runs,
                                      violation =  "Nonlinear relationship", 
                                      violation_func = sin, 
                                      num_predictors, 
-                                     sigma_sq)[[1]]
+                                     sigma_sq)
+```
 
-sinusoidal_results <- rbind(small_samp = sin_small_results, 
-                            med_samp = sin_med_results, 
-                            large_samp = sin_large_results)
+```{r}
+sinusoidal_results <- rbind(small_samp = sin_small_results[[1]], 
+                            med_samp = sin_med_results[[1]], 
+                            large_samp = sin_large_results[[1]])
 sinusoidal_results
 ```
+
+```{r}
+show_diagnostics(sin_small_results)
+```
+
+```{r}
+show_diagnostics(sin_med_results)
+```
+
+```{r}
+show_diagnostics(sin_large_results)
+```
+
+
 ## **LOGARITHMIC**
 ```{r logarithmic_relationship}
 log_small_results <- run_simulations(num_runs, 
@@ -357,7 +387,7 @@ log_small_results <- run_simulations(num_runs,
                                      violation =  "Nonlinear relationship", 
                                      violation_func = log,
                                      num_predictors, 
-                                     sigma_sq)[[1]]
+                                     sigma_sq)
 
 log_med_results <- run_simulations(num_runs, 
                                    n_med, 
@@ -365,7 +395,7 @@ log_med_results <- run_simulations(num_runs,
                                    violation =  "Nonlinear relationship", 
                                    violation_func = log, 
                                    num_predictors, 
-                                   sigma_sq)[[1]]
+                                   sigma_sq)
 
 log_large_results <- run_simulations(num_runs, 
                                      n_large, 
@@ -373,29 +403,56 @@ log_large_results <- run_simulations(num_runs,
                                      violation =  "Nonlinear relationship", 
                                      violation_func = log, 
                                      num_predictors, 
-                                     sigma_sq)[[1]]
+                                     sigma_sq)
 
-logarithmic_results <- rbind(small_samp = log_small_results, 
-                             med_samp = log_med_results, 
-                             large_samp = log_large_results)
+
+```
+
+```{r}
+logarithmic_results <- rbind(small_samp = log_small_results[[1]], 
+                             med_samp = log_med_results[[1]], 
+                             large_samp = log_large_results[[1]])
 logarithmic_results
 ```
-TODO
+
+```{r}
+show_diagnostics(log_small_results)
+```
+
+```{r}
+show_diagnostics(log_med_results)
+```
+
+```{r}
+show_diagnostics(log_large_results)
+```
+
+
+TODO  check code and write interpretation.
 
 ## PART E
 ```{r}
 #part e, name the normal func & nonnormal func & randomly call it
-my.simulation <- function(n, b0, b1){
-  choices.simulation <- c("normal", "nonnormal")
-  random.choice <- sample(choices.simulation, 1)
-  if (random.choice == "normal"){
-    return(normal_func)
-  }
-  else{
-    return(nonnormal_func)
-  }
-}
+random.func <- sample(c(poly_func, sin, exp, log), 1)
+n <- sample(20:5000, 1)
+random.violation <- sample(c("None","Nonlinear relationship"), 1)
+
+random_results <- run_simulations(num_runs, 
+                                  n, 
+                                  num_new_obsv, 
+                                  violation =  random.violation,
+                                  violation_func = random.func,
+                                  num_predictors, 
+                                  sigma_sq)
+
+random_results[[1]]
 ```
+
+```{r}
+show_diagnostics(random_results)
+```
+
+
 
 2.	Non-normal errors
     a.	Simulate errors from a variety of different non-normal distributions (e.g. gamma, poisson). Make sure to shift the errors over so that they are still centered at 0.
@@ -419,7 +476,7 @@ gamma_small_results <- run_simulations(num_runs,
                                      violation =  "Non-normal errors", 
                                      violation_func = "Gamma",
                                      num_predictors, 
-                                     sigma_sq)[[1]]
+                                     sigma_sq)
 
 gamma_med_results <- run_simulations(num_runs, 
                                    n_med, 
@@ -427,7 +484,7 @@ gamma_med_results <- run_simulations(num_runs,
                                    violation =  "Non-normal errors", 
                                    violation_func = "Gamma", 
                                    num_predictors, 
-                                   sigma_sq)[[1]]
+                                   sigma_sq)
 
 gamma_large_results <- run_simulations(num_runs, 
                                      n_large, 
@@ -435,14 +492,77 @@ gamma_large_results <- run_simulations(num_runs,
                                      violation =  "Non-normal errors", 
                                      violation_func = "Gamma", 
                                      num_predictors, 
-                                     sigma_sq)[[1]]
+                                     sigma_sq)
+```
 
-gamma_results <- rbind(small_samp = gamma_small_results, 
-                             med_samp = gamma_med_results, 
-                             large_samp = gamma_large_results)
+```{r}
+gamma_results <- rbind(small_samp = gamma_small_results[[1]], 
+                             med_samp = gamma_med_results[[1]], 
+                             large_samp = gamma_large_results[[1]])
 gamma_results
 ```
 
+```{r}
+show_diagnostics(gamma_small_results)
+```
+
+```{r}
+show_diagnostics(gamma_med_results)
+```
+
+```{r}
+show_diagnostics(gamma_large_results)
+```
+
+## **POISSON**
+```{r poisson_errors}
+poisson_small_results <- run_simulations(num_runs, 
+                                     n_small, 
+                                     num_new_obsv, 
+                                     violation =  "Non-normal errors", 
+                                     violation_func = "Poisson",
+                                     num_predictors, 
+                                     sigma_sq)
+
+poisson_med_results <- run_simulations(num_runs, 
+                                   n_med, 
+                                   num_new_obsv, 
+                                   violation =  "Non-normal errors", 
+                                   violation_func = "Poisson", 
+                                   num_predictors, 
+                                   sigma_sq)
+
+poisson_large_results <- run_simulations(num_runs, 
+                                     n_large, 
+                                     num_new_obsv, 
+                                     violation =  "Non-normal errors", 
+                                     violation_func = "Poisson", 
+                                     num_predictors, 
+                                     sigma_sq)
+
+
+```
+
+```{r}
+poisson_results <- rbind(small_samp = poisson_small_results[[1]], 
+                             med_samp = poisson_med_results[[1]], 
+                             large_samp = poisson_large_results[[1]])
+poisson_results
+```
+
+```{r}
+show_diagnostics(poisson_small_results)
+```
+
+```{r}
+show_diagnostics(poisson_med_results)
+```
+
+```{r}
+show_diagnostics(poisson_large_results)
+```
+
+ TODO part e
 ```{r}
 # Sample code to get started
 n <- n_large
@@ -465,42 +585,6 @@ mean(eps)
 
 ```
 
-## **POISSON**
-```{r poisson_errors}
-poisson_small_results <- run_simulations(num_runs, 
-                                     n_small, 
-                                     num_new_obsv, 
-                                     violation =  "Non-normal errors", 
-                                     violation_func = "Poisson",
-                                     num_predictors, 
-                                     sigma_sq)[[1]]
-
-poisson_med_results <- run_simulations(num_runs, 
-                                   n_med, 
-                                   num_new_obsv, 
-                                   violation =  "Non-normal errors", 
-                                   violation_func = "Poisson", 
-                                   num_predictors, 
-                                   sigma_sq)[[1]]
-
-poisson_large_results <- run_simulations(num_runs, 
-                                     n_large, 
-                                     num_new_obsv, 
-                                     violation =  "Non-normal errors", 
-                                     violation_func = "Poisson", 
-                                     num_predictors, 
-                                     sigma_sq)[[1]]
-
-poisson_results <- rbind(small_samp = poisson_small_results, 
-                             med_samp = poisson_med_results, 
-                             large_samp = poisson_large_results)
-poisson_results
-```
-
-```{r}
-#rpois()
-```
-
 3. Heterogeneous Variances
     a.	Simulate errors from a variety of different relationships with X (e.g. eps = 2 * sqrt(x))
     b.	Try simulations with a small sample size (e.g. 20), a medium sample size (e.g. n= 100), and a large sample size (e.g. n = 5000). 
@@ -514,6 +598,53 @@ poisson_results
         i. Have R randomly choose whether to simulate errors with constant or non-constant variance
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)
+
+```{r}
+hetero_var_small_results <- run_simulations(num_runs,
+                                     n_small, 
+                                     num_new_obsv, 
+                                     violation =  "Heterogeneous variances", 
+                                     violation_func = poly_func, 
+                                     num_predictors, 
+                                     sigma_sq)
+
+hetero_var_med_results <-run_simulations(num_runs, 
+                                  n_med, 
+                                  num_new_obsv, 
+                                  violation =  "Heterogeneous variances",
+                                  violation_func = poly_func, 
+                                  num_predictors, 
+                                  sigma_sq)
+
+hetero_var_large_results <-run_simulations(num_runs,
+                                    n_large, 
+                                    num_new_obsv, 
+                                    violation =  "Heterogeneous variances", 
+                                    violation_func = poly_func, 
+                                    num_predictors, 
+                                    sigma_sq)
+```
+
+```{r}
+hetero_var_results <- rbind(small_samp = hetero_var_small_results[[1]],
+                             med_samp = hetero_var_med_results[[1]], 
+                             large_samp = hetero_var_large_results[[1]])
+hetero_var_results
+```
+
+```{r}
+show_diagnostics(hetero_var_small_results)
+```
+
+```{r}
+show_diagnostics(hetero_var_med_results)
+```
+
+```{r}
+show_diagnostics(hetero_var_large_results)
+```
+
+TODO part e
         
 ```{r}
 # Sample code to get started
@@ -526,38 +657,6 @@ poisson_results
 # y <- b0 + b1 * x + eps
 
 ```
-
-```{r}
-hetero_var_small_results <- run_simulations(num_runs,
-                                     n_small, 
-                                     num_new_obsv, 
-                                     violation =  "Heterogeneous variances", 
-                                     violation_func = poly_func, 
-                                     num_predictors, 
-                                     sigma_sq)[[1]]
-
-hetero_var_med_results <-run_simulations(num_runs, 
-                                  n_med, 
-                                  num_new_obsv, 
-                                  violation =  "Heterogeneous variances",
-                                  violation_func = poly_func, 
-                                  num_predictors, 
-                                  sigma_sq)[[1]]
-
-hetero_var_large_results <-run_simulations(num_runs,
-                                    n_large, 
-                                    num_new_obsv, 
-                                    violation =  "Heterogeneous variances", 
-                                    violation_func = poly_func, 
-                                    num_predictors, 
-                                    sigma_sq)[[1]]
-
-hetero_var_results <- rbind(small_samp = hetero_var_small_results,
-                             med_samp = hetero_var_med_results, 
-                             large_samp = hetero_var_large_results)
-hetero_var_results
-```
-
 
 4. Correlated Errors
     a.	Simulate errors from a variety of different correlation structures.
@@ -594,7 +693,7 @@ hetero_var_results
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)
 ```{r}
-add_noise <- function(x) x + rnorm(length(x))
+add_noise <- function(x) {x + rnorm(length(x))}
 num_predictors <- 2
 multicolinearity_small_results <- run_simulations(num_runs,
                                      n_small,
@@ -602,7 +701,7 @@ multicolinearity_small_results <- run_simulations(num_runs,
                                      violation =  "Multicolinearity",
                                      violation_func = add_noise,
                                      num_predictors,
-                                     sigma_sq)[[1]]
+                                     sigma_sq)
 
 multicolinearity_med_results <- run_simulations(num_runs,
                                      n_med,
@@ -610,7 +709,7 @@ multicolinearity_med_results <- run_simulations(num_runs,
                                      violation =  "Multicolinearity",
                                      violation_func = add_noise,
                                      num_predictors,
-                                     sigma_sq)[[1]]
+                                     sigma_sq)
 
 multicolinearity_large_results <- run_simulations(num_runs,
                                      n_large,
@@ -618,14 +717,30 @@ multicolinearity_large_results <- run_simulations(num_runs,
                                      violation =  "Multicolinearity",
                                      violation_func = add_noise,
                                      num_predictors,
-                                     sigma_sq)[[1]]
+                                     sigma_sq)
+```
 
-multicolinearity_results <- rbind(small_samp = multicolinearity_small_results,
-                             med_samp = multicolinearity_med_results,
-                             large_samp = multicolinearity_large_results)
+```{r}
+multicolinearity_results <- rbind(small_samp = multicolinearity_small_results[[1]],
+                             med_samp = multicolinearity_med_results[[1]],
+                             large_samp = multicolinearity_large_results[[1]])
 multicolinearity_results
 ```
 
+```{r}
+show_diagnostics(multicolinearity_small_results)
+```
+
+```{r}
+show_diagnostics(multicolinearity_med_results)
+```
+
+```{r}
+show_diagnostics(multicolinearity_large_results)
+```
+
+
+TODO part e
 ```{r}
 
 # B <- 100
