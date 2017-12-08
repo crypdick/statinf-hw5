@@ -23,14 +23,9 @@ require(ggplot2)
 + Some sample code has been included, but you will need to try many different starting values for the parameters, sample size, and distributional assumptions. The included code is just to give you a starting point; it should not be considered sufficient to answer all the questions in each part. (And you are welcome to ignore the sample code and use your own)
 
 ```{r run_sim}
-<<<<<<< HEAD
-check_violations <- function(sample_size, orig_new_obsv, violation_name, violation_func, sigma_sq, orig_x) {
+check_violations <- function(sample_size, orig_new_obsv, violation_name, violation_func, sigma_sq, orig_X) {
 # new_obs used to calculate y
 # x, eps used to calculate y_hat
-=======
-check_violations <- function(sample_size, orig_new_obsv, violation_name, violation_func, sigma_sq, orig_X) {
-    
->>>>>>> 4bbbf360d02c72b632a7f05f13decf33da5b251e
     if (violation_name == "None") {
       X <- orig_X
       new_obsv <- orig_new_obsv
