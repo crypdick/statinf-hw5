@@ -75,12 +75,12 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
 # function that will run simulations, violating a specific assumption
 run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, violation_func, num_predictors, sigma_sq) {
   
-  sim_results <- data.frame(bad_prediction_rate = 0,
-                            bad_intercept_rate = 0, 
-                            bad_predictor_rate = 0, 
+  sim_results <- data.frame(percent_yhat_bad_confint = 0,
+                            percent_intercept_bad_confint = 0, 
+                            percent_param_bad_confint = 0, 
                             average_mse = 0, 
-                            insignificant_intercept_rate = 0, 
-                            insignificant_predictor_rate = 0)
+                            percent_insignificant_intercept = 0, 
+                            percent_insignificant_param = 0) 
 
   parameters <- sample.int(10,num_predictors + 1)
   for (i in 1:num_runs) {
@@ -110,49 +110,56 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
     Y_hat_ci <- predict(my_lm, newdata = data.frame(X = I(new_obsv)), interval = "confidence")
     
     # check whether the confidence interval actually captures the expected value of y from the true model
-    bad_predictions <- num_new_obsv - sum((exp_val_Y >= Y_hat_ci[,2]) & (exp_val_Y <= Y_hat_ci[,3]))
-    sim_results$bad_prediction_rate <- sim_results$bad_prediction_rate + bad_predictions
+    n_bad_predictions <- num_new_obsv - sum((exp_val_Y >= Y_hat_ci[,2]) & (exp_val_Y <= Y_hat_ci[,3]))
+# freq of confint for prediction of new data points not capturing the expected val of Y based on ground truth
+    sim_results$percent_yhat_bad_confint <- sim_results$percent_yhat_bad_confint + n_bad_predictions
     
     # get confidence iterval for beta hat
     beta_ci <- confint(my_lm)
+    
     # check whether the true value for the betas is caputured in the confidence interval
-    good_betas <- ((parameters >= beta_ci[,1]) & (parameters <= beta_ci[,2]))
+    good_betas <- ((parameters >= beta_ci[,"2.5 %"]) & (parameters <= beta_ci[,"97.5 %"]))
     if (good_betas[1] == FALSE)
+
 # how many times true beta_0 was not captured by the confint for our fitted model
-      sim_results$bad_intercept_rate <- sim_results$bad_intercept_rate + 1
-    if (sum(good_betas[-1] == FALSE) >= 1)
+      sim_results$percent_intercept_bad_confint <- sim_results$percent_intercept_bad_confint + 1
+    # good_betas[-1] means anything that is not the intercept coeff
+    if (sum(good_betas[-1] == FALSE) >= 1) 
 # bad predictor rate: how many times a parameter that was not b0 was not within the confint
       # if there's more than one they are combined
-      {sim_results$bad_predictor_rate <- sim_results$bad_predictor_rate + sum(good_betas[-1] == FALSE)}
+      {sim_results$percent_param_bad_confint <- sim_results$percent_param_bad_confint + sum(good_betas[-1] == FALSE)}
     
     # add the mse to the sum of MSE for all runs (to be averaged at the end)
-    sim_results$average_mse <- sim_results$average_mse + (anova(my_lm)$'Mean Sq'[2])
+    sim_results$average_mse <- sim_results$average_mse + (anova(my_lm)$'Mean Sq'[2]) # [2] for residual
     
     
     # check which beta_hats are significant based on the p-values
-    p_vals <- summary(my_lm)$coeff[,4]
+    p_vals <- summary(my_lm)$coeff[,4] # 4 for pvals
     if (p_vals[1] > .05)
 # frequency % p-val(intercept) was >0.05      
-      sim_results$insignificant_intercept_rate <- sim_results$insignificant_intercept_rate + 1
-    if (sum(p_vals[-1] > .05) >= 1) 
-# freq that params for predictors had p-val > 0.05 in all our sims. on interval (0,1)
-      {sim_results$insignificant_predictor_rate <- sim_results$insignificant_predictor_rate + sum(p_vals[-1] > .05)}
+      sim_results$percent_insignificant_intercept <- sim_results$percent_insignificant_intercept + 1
+    if (sum(p_vals[-1] > .05) >= 1)
+      
+# excluding intercept coeff, freq that params for predictors had p-val > 0.05 in all our sims. on interval (0,1)
+      # sum in case more than one predictor var
+      {sim_results$percent_insignificant_param <- sim_results$percent_insignificant_param + sum(p_vals[-1] > .05)}
   }
+  
+  # FINALLY, take mean of all these 
   sim_results <- sim_results/num_runs
   
+  # confint for predictions did not capture expected value, divided by n new data points 
+  sim_results$percent_yhat_bad_confint <- sim_results$percent_yhat_bad_confint/(num_new_obsv)
   
-  sim_results$bad_prediction_rate <- sim_results$bad_prediction_rate/(num_new_obsv)
+  # conint for predictor param did not capture true param used to generate data, divited by number of predictors
+  sim_results$percent_param_bad_confint <- sim_results$percent_param_bad_confint/(num_predictors)
   
-  
-  sim_results$insignificant_predictor_rate <- sim_results$bad_predictor_rate/(num_predictors)
-  
-  
-  sim_results$insignificant_predictor_rate <- sim_results$insignificant_predictor_rate/(num_predictors)
+  # precent of (non-intercept) params that whose p-val > 0.05
+  sim_results$percent_insignificant_param <- sim_results$percent_insignificant_param/(num_predictors)
 
   # R is terrible and we have to return our objects as a list >:C
   payload <- list(sim_results=sim_results, lm_model=my_lm, X=X, Y=Y, eps=eps, Y_hat_ci=Y_hat_ci, exp_val_Y=exp_val_Y)
   return(payload)
-  
 }
 ```
 
