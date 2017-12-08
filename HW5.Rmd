@@ -407,7 +407,19 @@ log_large_results <- run_simulations(num_runs,
 
 TODO template for part D
 
-TODO template for part E
+TODO template for part E  
+
+
+We used R to choose whether to simulate data from a true linear model or a true nonlinear model. And then we simulated data accordingly and displayed diagnostics as appropritate. 
+
+
+From this simulation, we can tell that a linear function was generated.  
+
+Based on the diagnostics, we predict that the problem areas that we mentioned in part d will/will not be affected.  
+
+
+
+
 
 ## PART E
 TODO write interpretation
