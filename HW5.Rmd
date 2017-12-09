@@ -415,7 +415,7 @@ We used R to choose whether to simulate data from a true linear model or a true 
 
 From this simulation, we can tell that a linear function was generated.  
 
-Based on the diagnostics, we predict that the problem areas that we mentioned in part d will/will not be affected.  
+Based on the diagnostics, we predict that the problem areas that we mentioned in part d will/will not be affected. 
 
 
 
