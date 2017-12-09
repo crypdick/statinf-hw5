@@ -193,22 +193,11 @@ plot_diagnostics <- function(payload) {
   # TODO if so, call pairs()
   
   writeLines("Diagnostic #1: Is the Regression Function Linear? ")
-  #print("\n Diagnostic #1: Is the Regression Function Linear? ")
-  # print() required inside function
-  #print(summary(lm_model))
-  #print(anova(lm_model))
-  #plot(lm_model)
   plot(Y ~ X)
   abline(lm_model)
-  #pairs()
-  
 
   writeLines("Diagnostic #2: Do the Residuals Have Constant Variance?\n\n Does the plot appear to be a general cloud of points or is there a megaphone shape?")
   plot(lm_model, which = 1) 
-  
-  
-  #df <- data.frame(X,Y)
-  #bf.test(Y ~ X, data = df)
   
   writeLines("Diagnostic #3: Are the Residuals Normally Distributed?")
   plot(lm_model, which = 2)
@@ -216,9 +205,18 @@ plot_diagnostics <- function(payload) {
   writeLines("Diagnostic #4: Are the Residuals Independent?")  
   plot(1:length(X), residuals(lm_model))
   
-  
-  # writeLines("Diagnostic #5: Does the model fit all but one or a few outlier observations?")
-   
+  if(num_predictors > 1){
+    
+      multivariate_dataframe <- as.data.frame(cbind(X, Y))
+  colnames(multivariate_dataframe) <- c("X1", "X2", "Y")
+multivariate_lm_model <- lm(Y~., data = multivariate_dataframe)
+    
+    
+    
+    writeLines("Diagnostic #5: Is there Evidence of Multicollinearity?")
+    pairs(multivariate_dataframe)
+  }
+
 }
 
 ```
@@ -227,21 +225,61 @@ plot_diagnostics <- function(payload) {
 summary_diagnostics <- function(payload) {
   # unpack payload
   list2env(payload, envir=environment())
-  
-  # print() required inside function
+
   print(summary(lm_model))
   print(anova(lm_model))
 }
 ```
 
 ```{r}
-# TODO advanced_diagnostics
 advanced_diagnostics <- function(payload) {
   # unpack payload
   list2env(payload, envir=environment())
+  
+  # writeLines("Diagnostic #1: Is the Regression Function Linear? ")
+  # print(anova(lm_model))
+  
+  writeLines("Diagnostic #2: Do the Residuals Have Constant Variance?\n\n Does the plot appear to be a general cloud of points or is there a megaphone shape?")
+
+  writeLines("Large values of the test statistic lead to us rejecting H0 and concluding that we have nonconstant variance (ie heteroskedacity).")
+  
+  
+  print(bptest(Y ~ X))
+  
+  writeLines("Diagnostic #3: Are the Residuals Normally Distributed?")
+  # plot(lm_model, which = 2)
+  print(shapiro.test(residuals(lm_model)))
+
+  
+  if(num_predictors > 1){
+  writeLines("Diagnostic #5: Is there Evidence of Multicollinearity?")  
+  writeLines("Here are some rough guidelines:
+  VIF_j≈1: no evidence of multicollinearity for x_j
+  1<VIF_j<5: evidence of moderate multicollinearity for x_j
+  5≤VIF_j<10: evidence of strong multicollinearity for x_j
+  VIF_j≥10 evidence of severe multicollinearity for x_j, will almost certainly cause problems")
+  
+
+  multivariate_dataframe <- as.data.frame(cbind(X, Y))
+  colnames(multivariate_dataframe) <- c("X1", "X2", "Y")
+multivariate_lm_model <- lm(Y~., data = multivariate_dataframe)
+
+
+  print(vif(multivariate_lm_model))
+  }
+
+  
+
 }
 
 ```
+
+
+
+
+
+
+
 
 
 # Questions
