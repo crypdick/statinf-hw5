@@ -780,18 +780,30 @@ D) I compared different sample sizes with different values of Rho, the level of 
 
 E)
 ```{r}
-#randomly select a value of rho equal to .7 or 0 from a large sample size
-rho_vec <- c(0.7,0.0)
-random_error_large_results_h <-run_simulations(num_runs,
-                                    n_large, 
-                                    num_new_obsv, 
-                                    violation =  "Correlated Errors", 
-                                    violation_func = sample(rho_vec,1), 
-                                    num_predictors, 
-                                    sigma_sq)
+#randomly select a value of rho equal to .8 or 0 from a large sample size
+set.seed(1234)
+rho_vec <- c(0, .8)
+#choose random value of rho
+rho <- sample(rho_vec,1)
 
-plot_diagnostics(random_error_large_results_h)
+  n <- 500
+  x <- runif(n, 0, 10)
+  newx <- runif(n,0,10)
+  eps <- rep(0, n)
+  e.ind <- rnorm(n, mean = 0, sd = (sigma / sqrt(1-rho^2)))
+  eps[1] <- e.ind[1]
+  for (i in 2:n) {
+    eps[i] <- rho * eps[i-1] + e.ind[i]
+  }
+  y <- b0 + b1 * x + eps
+  
+  lm.random <- lm(y~x)
+  
+  plot(lm.random)
+  plot(1:n, residuals(lm.random))
+
 ```
+Given the plot of the residuals, there doesn't appear to be a correlation in the error terms. Therefore, the violations from before will not be affected and the linear model can be applied. 
   
 5. Multicollinearity
     a.	Simulate predictors that are correlated with a variety of different correlation structures
