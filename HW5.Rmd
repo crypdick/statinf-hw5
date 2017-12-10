@@ -191,8 +191,6 @@ plot_diagnostics <- function(payload) {
   # unpack payload
   list2env(payload, envir=environment())
   
-  
-#multicollinearity case, check for multiple X variables
   if(num_predictors > 1){
     
   multivariate_dataframe <- as.data.frame(cbind(X, Y))
@@ -213,9 +211,7 @@ plot_diagnostics <- function(payload) {
   writeLines("Diagnostic #5: Is there Evidence of Multicollinearity?")
   pairs(multivariate_dataframe)
   }
-
-
-#univariate case  
+  
   writeLines("Diagnostic #1: Is the Regression Function Linear? ")
   plot(Y ~ X)
   abline(lm_model)
@@ -228,6 +224,7 @@ plot_diagnostics <- function(payload) {
   
   writeLines("Diagnostic #4: Are the Residuals Independent?")  
   plot(1:length(X), residuals(lm_model))
+  
 
 }
 
@@ -295,6 +292,14 @@ advanced_diagnostics <- function(payload) {
   print(shapiro.test(residuals(lm_model)))
 
 }
+
+```
+
+
+
+
+
+
 
 
 
