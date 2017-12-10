@@ -14,6 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, message=FALSE}
 require(ggplot2)
+library(lmtest)
+library(car)
 ```
 
 
@@ -178,7 +180,7 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
   sim_results$percent_insignificant_param <- sim_results$percent_insignificant_param/(num_predictors)
 
   # R is terrible and we have to return our objects as a list >:C
-  payload <- list(sim_results=sim_results, linear_model=my_lm, X=X, Y=Y, eps=eps, Y_hat_ci=Y_hat_ci, exp_val_Y=exp_val_Y, n=sample_size)
+  payload <- list(sim_results=sim_results, lm_model=my_lm, X=X, Y=Y, eps=eps, Y_hat_ci=Y_hat_ci, exp_val_Y=exp_val_Y, n=sample_size, num_predictors=num_predictors)
   return(payload)
 }
 ```
@@ -188,35 +190,41 @@ run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, viol
 plot_diagnostics <- function(payload) {
   # unpack payload
   list2env(payload, envir=environment())
-  multiple_predictors <- is.matrix(X)
-
-  if(multiple_predictors){
+  
+  if(num_predictors > 1){
     
     multivariate_dataframe <- as.data.frame(cbind(X, Y))
     colnames(multivariate_dataframe) <- c("X1", "X2", "Y")
-    multivariate_linear_model <- lm(Y~., data = multivariate_dataframe)
+    multivariate_lm_model <- lm(Y~., data = multivariate_dataframe)
+      
+    writeLines("Diagnostic #1: Is the Regression Function Linear? ")
+    plot(multivariate_lm_model, which = 1, caption = "Residuals vs Fitted")
     
+      writeLines("Diagnostic #2: Do the Residuals Have Constant Variance?\n\n Does the plot appear to be a general cloud of points or is there a megaphone shape?")
+    plot(multivariate_lm_model, which = 1) 
     
-    writeLines("Is there Evidence of Multicollinearity?\nIs the relationship between each predictor and Y linear?")
+      writeLines("Diagnostic #3: Are the Residuals Normally Distributed?")
+    plot(multivariate_lm_model, which = 2)
+    
+    writeLines("Diagnostic #4: Are the Residuals Independent?")  
+    plot(1:length(X), residuals(multivariate_lm_model))
+    
+    writeLines("Diagnostic #5: Is there Evidence of Multicollinearity?")
     pairs(multivariate_dataframe)
-    
   } else {
-      writeLines("Is the Relationship Between X and Y Linear? ")
-      plot(Y ~ X)
-      abline(linear_model)
-  }
   
+  writeLines("Diagnostic #1: Is the Regression Function Linear? ")
+  plot(Y ~ X)
+  abline(lm_model)
 
-
-  writeLines("Do the Residuals Have Constant Variance?\n\n Does the plot appear to be a general cloud of points or is there a megaphone shape?")
-  plot(linear_model, which = 1) 
+  writeLines("Diagnostic #2: Do the Residuals Have Constant Variance?\n\n Does the plot appear to be a general cloud of points or is there a megaphone shape?")
+  plot(lm_model, which = 1) 
   
-  writeLines("Are the Residuals Normally Distributed?")
-  plot(linear_model, which = 2)
+  writeLines("Diagnostic #3: Are the Residuals Normally Distributed?")
+  plot(lm_model, which = 2)
   
-  writeLines("Are the Residuals Independent?")  
-  plot(1:n, residuals(linear_model))
-  
+  writeLines("Diagnostic #4: Are the Residuals Independent?")  
+  plot(1:n, residuals(lm_model))}
 
 
 }
@@ -228,8 +236,8 @@ summary_diagnostics <- function(payload) {
   # unpack payload
   list2env(payload, envir=environment())
 
-  print(summary(linear_model))
-  print(anova(linear_model))
+  print(summary(lm_model))
+  print(anova(lm_model))
 }
 ```
 
@@ -237,44 +245,61 @@ summary_diagnostics <- function(payload) {
 advanced_diagnostics <- function(payload) {
   # unpack payload
   list2env(payload, envir=environment())
-  multiple_predictors <- is.matrix(X)
-  # writeLines("Diagnostic #1: Is the Regression Function Linear? ")
-  # print(anova(lm_model))
   
-  writeLines("Do the Residuals Have Constant Variance?\n\n Does the plot appear to be a general cloud of points or is there a megaphone shape?")
+  #check for multivariate case
+  if(num_predictors > 1){
+    multivariate_dataframe <- as.data.frame(cbind(X, Y))
+    colnames(multivariate_dataframe) <- c("X1", "X2", "Y")
+    multivariate_lm_model <- lm(Y~., data = multivariate_dataframe)
+    
+    #constant var
+     writeLines("Diagnostic #2: Do the Residuals Have Constant Variance?\n\n Does the plot appear to be a general cloud of points or is there a megaphone shape?")
+    writeLines("Large values of the test statistic lead to us rejecting H0 and concluding that we have nonconstant variance (ie heteroskedacity).")
+    print(bptest(multivariate_lm_model))
+    
+    #residuals nonnormal
+    writeLines("Diagnostic #3: Are the Residuals Normally Distributed?")
+    # plot(lm_model, which = 2)
+    print(shapiro.test(residuals(multivariate_lm_model)))
 
-  writeLines("Large values of the test statistic lead to us rejecting H0 and concluding that we have nonconstant variance (ie heteroskedacity).")
-  
-  
-  print(bptest(Y ~ X))
-  
-  writeLines("Are the Residuals Normally Distributed?")
-  # plot(lm_model, which = 2)
-  print(shapiro.test(residuals(linear_model)))
-
-  
-  if(multiple_predictors){
-    writeLines("Is there Evidence of Multicollinearity?")  
+    #multicollinearity
+    writeLines("Diagnostic #5: Is there Evidence of Multicollinearity?")  
     writeLines("Here are some rough guidelines:
     VIF_j≈1: no evidence of multicollinearity for x_j
     1<VIF_j<5: evidence of moderate multicollinearity for x_j
     5≤VIF_j<10: evidence of strong multicollinearity for x_j
     VIF_j≥10 evidence of severe multicollinearity for x_j, will almost certainly cause problems")
-    
-  
-    multivariate_dataframe <- as.data.frame(cbind(X, Y))
-    colnames(multivariate_dataframe) <- c("X1", "X2", "Y")
-    multivariate_linear_model <- lm(Y~., data = multivariate_dataframe)
+    print(vif(multivariate_lm_model))
+  } else {
   
   
-    print(vif(multivariate_linear_model))
+  #bivariate case  
+
+  # linearity
+  # writeLines("Diagnostic #1: Is the Regression Function Linear?")
+  # print(anova(lm_model))
+  
+  # constant variance
+  writeLines("Diagnostic #2: Do the Residuals Have Constant Variance?")
+
+# heteroskedacity
+  writeLines("Breusch-Pagan Test\n\nA p-value less than .05 will lead us to reject H0 and conclude that we have nonconstant variance (ie heteroskedacity).")
+  print(bptest(Y ~ X))
+  
+
+  #normally dist residuals
+  writeLines("Diagnostic #3: Are the Residuals Normally Distributed?")
+    writeLines("Shapiro-Wilk's Test\n\nA p-value less than .05 will lead us to reject H0 and conclude that the errors are not normally distributed.")
+  # plot(lm_model, which = 2)
+  print(shapiro.test(residuals(lm_model)))
   }
-
-  
-
 }
 
 ```
+
+
+
+
 
 
 # Questions
