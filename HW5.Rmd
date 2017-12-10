@@ -27,7 +27,7 @@ require(ggplot2)
 ```{r run_sim}
 check_violations <- function(sample_size, orig_new_obsv, violation_name, violation_func, sigma_sq, orig_X) {
 
-  # ordinary relationship with no violations of linearity
+  # ordinary relationship with no violations
   if (violation_name == "None") {
     X <- orig_X
     new_obsv <- orig_new_obsv
@@ -45,8 +45,8 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
     if (violation_func == "Gamma") {
       X <- orig_X
       new_obsv <- orig_new_obsv
-      eps_alpha <- 2
-      eps_beta <- 1/4
+      eps_alpha <- sigma_sq
+      eps_beta <- 1
       eps <- (rgamma(sample_size, shape = eps_alpha, scale = eps_beta) - eps_alpha * eps_beta) * 2
       return(list(X,new_obsv,eps))
     }
@@ -54,7 +54,7 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
     if (violation_func == "Poisson") {
       X <- orig_X
       new_obsv <- orig_new_obsv
-      lambda <- 4
+      lambda <- sigma_sq
       eps <- (rpois(sample_size, lambda) - lambda) * 2
       return(list(X,new_obsv,eps))
     }
@@ -63,12 +63,6 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
     X <- orig_X
     new_obsv <- orig_new_obsv
     eps <- rnorm(sample_size, mean = 0, sd = violation_func(X))
-    return(list(X,new_obsv,eps))
-  }
-  if (violation_name == "Multicolinearity") {
-    X <- unname(cbind(orig_X[,1],violation_func(orig_X[,1])))
-    new_obsv<- unname(cbind(orig_new_obsv[,1],violation_func(orig_new_obsv[,1])))
-    eps <- rnorm(sample_size, mean = 0, sd = sqrt(sigma_sq))
     return(list(X,new_obsv,eps))
   }
   if (violation_name == "Correlated Errors") {
@@ -83,18 +77,24 @@ check_violations <- function(sample_size, orig_new_obsv, violation_name, violati
     }
     return(list(X,new_obsv,eps))
   }
+    if (violation_name == "Multicolinearity") {
+    X <- unname(cbind(orig_X[,1],violation_func(orig_X[,1])))
+    new_obsv<- unname(cbind(orig_new_obsv[,1],violation_func(orig_new_obsv[,1])))
+    eps <- rnorm(sample_size, mean = 0, sd = sqrt(sigma_sq))
+    return(list(X,new_obsv,eps))
+  }
 }
 
 
 # function that will run simulations, violating a specific assumption
 run_simulations <- function(num_runs, sample_size, num_new_obsv, violation, violation_func, num_predictors, sigma_sq) {
   
-  sim_results <- data.frame(percent_yhat_bad_confint = 0,
-                            percent_intercept_bad_confint = 0, 
-                            percent_param_bad_confint = 0, 
-                            average_mse = 0, 
+  sim_results <- data.frame(percent_yhat_bad_confint        = 0,
+                            percent_intercept_bad_confint   = 0, 
+                            percent_param_bad_confint       = 0, 
+                            average_mse                     = 0, 
                             percent_insignificant_intercept = 0, 
-                            percent_insignificant_param = 0) 
+                            percent_insignificant_param     = 0) 
 
   parameters <- sample.int(10,num_predictors + 1)
   for (i in 1:num_runs) {
@@ -275,13 +275,6 @@ multivariate_lm_model <- lm(Y~., data = multivariate_dataframe)
 ```
 
 
-
-
-
-
-
-
-
 # Questions
 
 1.	Nonlinear relationship
@@ -332,7 +325,8 @@ num_predictors <- 1
 sigma_sq <- 4
 ```
 
-## **POLYNOMIAL**
+## PARTS A, B, & C
+### **POLYNOMIAL**
 ```{r polynomial_relationship}
 poly_func <- function(x) (x-5)^2
 poly_small_results <- run_simulations(num_runs,
@@ -360,7 +354,7 @@ poly_large_results <- run_simulations(num_runs,
                                      sigma_sq)
 ```
 
-## **EXPONENTIAL**
+### **EXPONENTIAL**
 ```{r exponential_relationship}
 exp_small_results <- run_simulations(num_runs,
                                      n_small, 
@@ -387,7 +381,7 @@ exp_large_results <-run_simulations(num_runs,
                                     sigma_sq)
 ```
 
-## **SINUSOIDAL**
+### **SINUSOIDAL**
 ```{r sinusoidal_relationship}
 sin_small_results <- run_simulations(num_runs, 
                                      n_small, 
@@ -414,7 +408,7 @@ sin_large_results <- run_simulations(num_runs,
                                      sigma_sq)
 ```
 
-## **LOGARITHMIC**
+### **LOGARITHMIC**
 ```{r logarithmic_relationship}
 log_small_results <- run_simulations(num_runs, 
                                      n_small, 
@@ -445,9 +439,15 @@ log_large_results <- run_simulations(num_runs,
 # QUESTION TEMPLATES
 
 TODO template for part D
+*Prediction confidence intervals*  
+*Confidence interval for $\beta_0$*  
+*Confidence inverval for $\beta_1$*  
+*Average MSE*  
+*P-values for $\beta_0$ and $\beta_1$*  
+
+
 
 TODO template for part E  
-
 
 We used R to choose whether to simulate data from a true linear model or a true nonlinear model. And then we simulated data accordingly and displayed diagnostics as appropritate. 
 
@@ -456,9 +456,38 @@ From this simulation, we can tell that a linear function was generated.
 
 Based on the diagnostics, we predict that the problem areas that we mentioned in part d will/will not be affected. 
 
+## PART D
+```{r}
+(polynomial_results <- rbind(small_samp = poly_small_results[[1]], 
+                            med_samp = poly_med_results[[1]], 
+                            large_samp = poly_large_results[[1]]))
 
+(exponential_results <- rbind(small_samp = exp_small_results[[1]],
+                             med_samp = exp_med_results[[1]], 
+                             large_samp = exp_large_results[[1]]))
 
+(sinusoidal_results <- rbind(small_samp = sin_small_results[[1]], 
+                            med_samp = sin_med_results[[1]], 
+                            large_samp = sin_large_results[[1]]))
 
+(logarithmic_results <- rbind(small_samp = log_small_results[[1]], 
+                             med_samp = log_med_results[[1]], 
+                             large_samp = log_large_results[[1]]))
+```
+*Prediction confidence intervals*  
+Each different type of non-linear relationship severely affected the quality of the predictions, and the quality continued to decrease as sample size increased.  
+
+*Confidence interval for $\beta_0$*  
+The confidence interval for the intercept failed to capture the true intercept for most of the simulations and it's accuracy in capturing it decreased significantly as the sample size increased. For each type of non-linear relationship we tested, the confidence interval for $\beta_0$ failed to capture the true value of the intercept for every single simulation when the sample size was set to 5000.  
+
+*Confidence inverval for $\beta_1$*  
+The confidence interval for $\beta_1$ performed even more poorly than the CI for the intercept.  The vast majority of the simulations failed to capture the true value.  
+
+*Average MSE*  
+The average MSE for each non-linear relationship tested was wildly inaccurate as an estimator of the variance of the error, $\sigma^2$, which was set to be 4 for each simulation.  
+
+*P-values for $\beta_0$ and $\beta_1$*  
+The p-value for the intercept was usually found to be significant (less than $\alpha = .05$), regardless of the underlying non-linear relationship, especially if the sample size was high. In the exponentail and logarithmic simulations, the coefficent $\beta_1$ was also usually significant, but the polynomial and sinusoidal simulations usually found that predictor to be insignificant.  
 
 ## PART E
 TODO write interpretation
@@ -498,8 +527,8 @@ plot_diagnostics(random_results1)
         i. Have R randomly choose whether to simulate data with normal or nonnormal errors
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)
-
-## **GAMMA**
+## PARTS A, B, & C
+### **GAMMA**
 ```{r gamma_errors}
 gamma_small_results <- run_simulations(num_runs, 
                                      n_small, 
@@ -529,7 +558,7 @@ gamma_large_results <- run_simulations(num_runs,
 ```
 
 
-## **POISSON**
+### **POISSON**
 ```{r poisson_errors}
 poisson_small_results <- run_simulations(num_runs, 
                                      n_small, 
@@ -559,24 +588,7 @@ poisson_large_results <- run_simulations(num_runs,
 
 
 ## PART D
-# TODO talk about sim results table
 ```{r}
-(polynomial_results <- rbind(small_samp = poly_small_results[[1]], 
-                            med_samp = poly_med_results[[1]], 
-                            large_samp = poly_large_results[[1]]))
-
-(exponential_results <- rbind(small_samp = exp_small_results[[1]],
-                             med_samp = exp_med_results[[1]], 
-                             large_samp = exp_large_results[[1]]))
-
-(sinusoidal_results <- rbind(small_samp = sin_small_results[[1]], 
-                            med_samp = sin_med_results[[1]], 
-                            large_samp = sin_large_results[[1]]))
-
-(logarithmic_results <- rbind(small_samp = log_small_results[[1]], 
-                             med_samp = log_med_results[[1]], 
-                             large_samp = log_large_results[[1]]))
-
 (gamma_results <- rbind(small_samp = gamma_small_results[[1]], 
                              med_samp = gamma_med_results[[1]], 
                              large_samp = gamma_large_results[[1]]))
@@ -585,7 +597,20 @@ poisson_large_results <- run_simulations(num_runs,
                              med_samp = poisson_med_results[[1]], 
                              large_samp = poisson_large_results[[1]]))
 ```
+*Prediction confidence intervals*  
+The confidence interval for the predictions performed very well. They failed about 5% of the time, which is to be expected since it is a 95% confidence interval.  
 
+*Confidence interval for $\beta_0$*  
+The confidence interval for the intercept performed very well, also failing about for about 5% of the simulations.  
+
+*Confidence inverval for $\beta_1$*  
+The confidence interval for $\beta_1$ performed very well, also failing about for about 5% of the simulations.  
+
+*Average MSE*  
+The variance for the errors was always set to 4, regardless of which distribution was used to generate them. Both simulations using either the Gamma or Poisson distributed errors resulted in an average MSE of approximately 16, which is significantly higher than the true variance.  
+
+*P-values for $\beta_0$ and $\beta_1$*  
+The simulations using the small sample size of 20 would often find the intercept to be insignificant. However, the coefficient for the predictor was always found to be significant, regardless of sample size or the distribution used to generate the errors.  
 
 ## PART E
 TODO write interpretation
@@ -626,49 +651,77 @@ plot_diagnostics(random_results2)
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)
         
+## PARTS A, B, & C
 ```{r}
-# Sample code to get started
-# n <- 200
-# b0 <- 10
-# b1 <- 10
-# 
-# x <- runif(n, 0, 10)
-# eps <- rnorm(n, sd = 0.5 * x^2)
-# y <- b0 + b1 * x + eps
-
-```
-
-```{r}
-hetero_var_small_results <- run_simulations(num_runs,
+poly_func_2 <- function(x) 0.5*x^2
+hetero_var_poly_small_results <- run_simulations(num_runs,
                                      n_small, 
                                      num_new_obsv, 
                                      violation =  "Heterogeneous variances", 
-                                     violation_func = poly_func, 
+                                     violation_func = poly_func_2, 
                                      num_predictors, 
                                      sigma_sq)
 
-hetero_var_med_results <-run_simulations(num_runs, 
+hetero_var_poly_med_results <-run_simulations(num_runs, 
                                   n_med, 
                                   num_new_obsv, 
                                   violation =  "Heterogeneous variances",
-                                  violation_func = poly_func, 
+                                  violation_func = poly_func_2, 
                                   num_predictors, 
                                   sigma_sq)
 
-hetero_var_large_results <-run_simulations(num_runs,
+hetero_var_poly_large_results <-run_simulations(num_runs,
                                     n_large, 
                                     num_new_obsv, 
                                     violation =  "Heterogeneous variances", 
-                                    violation_func = poly_func, 
+                                    violation_func = poly_func_2, 
                                     num_predictors, 
                                     sigma_sq)
 
-hetero_var_results <- rbind(small_samp = hetero_var_small_results[[1]],
-                             med_samp = hetero_var_med_results[[1]], 
-                             large_samp = hetero_var_large_results[[1]])
-hetero_var_results
+hetero_var_exp_small_results <- run_simulations(num_runs,
+                                     n_small, 
+                                     num_new_obsv, 
+                                     violation =  "Heterogeneous variances", 
+                                     violation_func = exp, 
+                                     num_predictors, 
+                                     sigma_sq)
+
+hetero_var_exp_med_results <-run_simulations(num_runs, 
+                                  n_med, 
+                                  num_new_obsv, 
+                                  violation =  "Heterogeneous variances",
+                                  violation_func = exp, 
+                                  num_predictors, 
+                                  sigma_sq)
+
+hetero_var_exp_large_results <-run_simulations(num_runs,
+                                    n_large, 
+                                    num_new_obsv, 
+                                    violation =  "Heterogeneous variances", 
+                                    violation_func = exp, 
+                                    num_predictors, 
+                                    sigma_sq)
+
 ```
 
+## PART D
+```{r}
+hetero_var_poly_results <- rbind(small_samp = hetero_var_poly_small_results[[1]],
+                             med_samp = hetero_var_poly_med_results[[1]], 
+                             large_samp = hetero_var_poly_large_results[[1]])
+hetero_var_poly_results
+
+hetero_var_exp_results <- rbind(small_samp = hetero_var_exp_small_results[[1]],
+                             med_samp = hetero_var_exp_med_results[[1]], 
+                             large_samp = hetero_var_exp_large_results[[1]])
+hetero_var_exp_results
+```
+*Prediction confidence intervals*  
+
+*Confidence interval for $\beta_0$*  
+*Confidence inverval for $\beta_1$*  
+*Average MSE*  
+*P-values for $\beta_0$ and $\beta_1$* 
 
 ## PART E
 TODO write interpretation
@@ -678,9 +731,8 @@ TODO write interpretation
 random_poly_func <- function(x) {
   a <- runif(1,0,5)
   b <- runif(1,2,4)
-  (x-a)^b
+  return((x-a)^b)
 }
-random.func3 <- sample(c(random_poly_func, exp), 1)
 n <- sample(20:5000, 1)
 random.violation3 <- sample(c("None","Heterogeneous variances"), 1)
 
@@ -688,7 +740,7 @@ random_results3 <- run_simulations(num_runs,
                                   n, 
                                   num_new_obsv, 
                                   violation =  random.violation3,
-                                  violation_func = random.func3,
+                                  violation_func = random_poly_func,
                                   num_predictors, 
                                   sigma_sq)
 
@@ -713,8 +765,8 @@ random_results3[[1]]
         i. Have R randomly choose whether to simulate data with correlated or uncorrelated errors.
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)
-
-```{r}
+## PARTS A, B, & C
+```{r correlated_error_sims}
 # Sample code to get started
 corr_error_small_results_h <- run_simulations(num_runs,
                                      n_small, 
@@ -740,11 +792,6 @@ corr_error_large_results_h <-run_simulations(num_runs,
                                     num_predictors, 
                                     sigma_sq)
 
-corr_error_results_h <- rbind(small_samp = corr_error_small_results_h[[1]],
-                             med_samp = corr_error_med_results_h[[1]], 
-                             large_samp = corr_error_large_results_h[[1]])
-corr_error_results_h
-
 #correlated errors with rho of .3
 corr_error_small_results_l <- run_simulations(num_runs,
                                      n_small, 
@@ -769,17 +816,25 @@ corr_error_large_results_l <-run_simulations(num_runs,
                                     violation_func = 0.3, 
                                     num_predictors, 
                                     sigma_sq)
+```
+        
+## PART D
+```{r correlated_errors_results}
+corr_error_results_h <- rbind(small_samp = corr_error_small_results_h[[1]],
+                             med_samp = corr_error_med_results_h[[1]], 
+                             large_samp = corr_error_large_results_h[[1]])
+corr_error_results_h
 
 corr_error_results_l <- rbind(small_samp = corr_error_small_results_l[[1]],
                              med_samp = corr_error_med_results_l[[1]], 
                              large_samp = corr_error_large_results_l[[1]])
 corr_error_results_l
 ```
-        
-D) I compared different sample sizes with different values of Rho, the level of correlation in the error terms. After running the simulations, several tasks were violated. Most notably, the value of the average MSE, which estimates the variance, in each case was greater than the true value of $\sigma^2$= 4. When Rho = .9, the average MSE was far greater and although not by much, when Rho =.2 the average MSE was greater as well. In the case where Rho was set to .9, the true value of $\hat{y}$ was missing in over half of the simulations' confidence intervals. Similarly, the ratio of simulations that failed to capture the true intercept was greater than 30% at each sample size level. Another violation appeared in the ratio of simulations that found the intercept to be insignificant, in the small and medium sample sizes this condition was violated over 39% of the time. Despite these violations, the ratio of simulations that failed to include the true value of $\beta_{1}$ was very low, less than 10%. In addition, none of the simulations considered $\beta_{1}$ to be insignificant. Strangely, the simulations with a value of Rho = .2 and a small sample size failed to capture the true $\beta_{0}$ over 70% of the time.
 
-E)
-```{r}
+I compared different sample sizes with different values of Rho, the level of correlation in the error terms. After running the simulations, several tasks were violated. Most notably, the value of the average MSE, which estimates the variance, in each case was greater than the true value of $\sigma^2$= 4. When Rho = .9, the average MSE was far greater and although not by much, when Rho =.2 the average MSE was greater as well. In the case where Rho was set to .9, the true value of $\hat{y}$ was missing in over half of the simulations' confidence intervals. Similarly, the ratio of simulations that failed to capture the true intercept was greater than 30% at each sample size level. Another violation appeared in the ratio of simulations that found the intercept to be insignificant, in the small and medium sample sizes this condition was violated over 39% of the time. Despite these violations, the ratio of simulations that failed to include the true value of $\beta_{1}$ was very low, less than 10%. In addition, none of the simulations considered $\beta_{1}$ to be insignificant. Strangely, the simulations with a value of Rho = .2 and a small sample size failed to capture the true $\beta_{0}$ over 70% of the time.
+
+## PART E
+```{r correlated_error_random_sim}
 #randomly select a value of rho equal to .7 or 0 from a large sample size
 rho_vec <- c(0.7,0.0)
 random_error_large_results_h <-run_simulations(num_runs,
@@ -807,55 +862,86 @@ plot_diagnostics(random_error_large_results_h)
         i. Have R randomly choose whether to simulate data with correlated or uncorrelated predictor variables (X).
         ii. Simulate data accordingly and display informal/ formal diagnostics as appropriate.
         iii. Based on the diagnostics, predict whether the problem areas you mentioned in part d will be affected or not. (Note: You are not predicting whether the assumptions are violated-- just whether they are violated to such an extent that your ability to use the model is compromised)
-        
-```{r}
+## PARTS A, B, & C
+```{r multicolinearity_sims}
 add_noise <- function(x) x + rnorm(length(x))
-num_predictors <- 2
-multicolinearity_small_results <- run_simulations(num_runs,
+multicolinearity_noise_small_results <- run_simulations(num_runs,
                                      n_small,
                                      num_new_obsv,
                                      violation =  "Multicolinearity",
                                      violation_func = add_noise,
-                                     num_predictors,
+                                     num_predictors = 2,
                                      sigma_sq)
 
-multicolinearity_med_results <- run_simulations(num_runs,
+multicolinearity_noise_med_results <- run_simulations(num_runs,
                                      n_med,
                                      num_new_obsv,
                                      violation =  "Multicolinearity",
                                      violation_func = add_noise,
-                                     num_predictors,
+                                     num_predictors = 2,
                                      sigma_sq)
 
-multicolinearity_large_results <- run_simulations(num_runs,
+multicolinearity_noise_large_results <- run_simulations(num_runs,
                                      n_large,
                                      num_new_obsv,
                                      violation =  "Multicolinearity",
                                      violation_func = add_noise,
-                                     num_predictors,
+                                     num_predictors = 2,
                                      sigma_sq)
 
-multicolinearity_results <- rbind(small_samp = multicolinearity_small_results[[1]],
-                             med_samp = multicolinearity_med_results[[1]],
-                             large_samp = multicolinearity_large_results[[1]])
-multicolinearity_results
+poly_func_3 <- function(x) x^2
+multicolinearity_poly_small_results <- run_simulations(num_runs,
+                                     n_small,
+                                     num_new_obsv,
+                                     violation =  "Multicolinearity",
+                                     violation_func = poly_func_3,
+                                     num_predictors = 2,
+                                     sigma_sq)
+
+multicolinearity_poly_med_results <- run_simulations(num_runs,
+                                     n_med,
+                                     num_new_obsv,
+                                     violation =  "Multicolinearity",
+                                     violation_func = poly_func_3,
+                                     num_predictors = 2,
+                                     sigma_sq)
+
+multicolinearity_poly_large_results <- run_simulations(num_runs,
+                                     n_large,
+                                     num_new_obsv,
+                                     violation =  "Multicolinearity",
+                                     violation_func = poly_func_3,
+                                     num_predictors = 2,
+                                     sigma_sq)
+```
+
+## PART D
+```{r multicolinearity_results}
+multicolinearity_noise_results <- rbind(small_samp = multicolinearity_noise_small_results[[1]],
+                             med_samp = multicolinearity_noise_med_results[[1]],
+                             large_samp = multicolinearity_noise_large_results[[1]])
+multicolinearity_noise_results
+
+multicolinearity_poly_results <- rbind(small_samp = multicolinearity_poly_small_results[[1]],
+                             med_samp = multicolinearity_poly_med_results[[1]],
+                             large_samp = multicolinearity_poly_large_results[[1]])
+multicolinearity_poly_results
 ```
 
 
 ## PART E
 TODO write interpretation
-```{r}
+```{r multicolinearity_random_sim}
 #part e, name the normal func & nonnormal func & randomly call it
 n <- sample(20:5000, 1)
 random.violation5 <- sample(c("None","Multicolinearity"), 1)
-random.violation5
 
 random_results5 <- run_simulations(num_runs,
                                   n,
                                   num_new_obsv,
                                   violation =  random.violation5,
                                   violation_func = add_noise,
-                                  num_predictors,
+                                  num_predictors = 2,
                                   sigma_sq)
 
 random_results5[[1]]
@@ -865,27 +951,6 @@ random_results5[[1]]
 #plot_diagnostics(random_results5)
 ```
     
-
-```{r}
-# B <- 100
-# many.sims.multicollinearity <- sapply(1:B, function(i) {
-#     # x <- rnorm(100, mean = 0, sd = 1)
-#     # eps <- rnorm(100, mean = 0, sd = sqrt(0.25))
-#     # y <- -1 + 0.5 * x + eps
-#     # simul.fit <- lm(y ~ x)
-#     # beta.1 <- 0.5
-#     # lower <- confint(simul.fit, "x")[1]
-#     # upper <- confint(simul.fit, "x")[2]
-#     # boolean <- beta.1 <= upper & beta.1 >= lower
-#     #return(boolean)
-# })
-
-# proportion <- sum(many.sims.multicollinearity)/length(many.sims.multicollinearity)
-# proportion
-
-```
-
-<!-- r proportion % of my confidence intervals capture the true value of  .    -->
 
         
 6. Put it all together: Combine the code from the previous 5 parts. Have R randomly choose whether to generate data that violates one (or more) of the assumptions, or whether all the assumptions are valid. Show appropriate diagnostics and test yourself to see if you can predict whether there are problem areas or not. Repeat the simulation several times and record your accuracy at detecting the different problem areas.  
