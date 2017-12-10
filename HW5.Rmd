@@ -201,13 +201,14 @@ plot_diagnostics <- function(payload) {
   plot(multivariate_lm_model, which = 1, caption = "Residuals vs Fitted")
   
     writeLines("Diagnostic #2: Do the Residuals Have Constant Variance?\n\n Does the plot appear to be a general cloud of points or is there a megaphone shape?")
-  plot(lm_model, which = 1) 
+  plot(multivariate_lm_model, which = 1) 
   
     writeLines("Diagnostic #3: Are the Residuals Normally Distributed?")
-  plot(lm_model, which = 2)
+  plot(multivariate_lm_model, which = 2)
   
   writeLines("Diagnostic #4: Are the Residuals Independent?")  
-  plot(1:length(X), residuals(lm_model))
+  plot(1:length(X), residuals(multivariate_lm_model))
+  
   writeLines("Diagnostic #5: Is there Evidence of Multicollinearity?")
   pairs(multivariate_dataframe)
   }
