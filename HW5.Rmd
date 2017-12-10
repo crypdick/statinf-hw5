@@ -738,11 +738,20 @@ hetero_var_exp_results <- rbind(small_samp = hetero_var_exp_small_results[[1]],
 hetero_var_exp_results
 ```
 *Prediction confidence intervals*  
+While the confidence interval for the predictions did not perform as poorly as they did for some of the other simulations, they do fail to capture the true expected value of the response variable more than 5% of the time. The rate of bad predictions does descrease as sample size increases.  
 
 *Confidence interval for $\beta_0$*  
+The CI for the intercept would almost always capture the true value of the intercept, which may indicate that the interval was very large since it almost never failed.  
+
 *Confidence inverval for $\beta_1$*  
+The CI for $\beta_1$ failed more often than it did for the intercept, but no more often than 25% of the time. The failure rate also decreased as sample size increased.  
+
 *Average MSE*  
-*P-values for $\beta_0$ and $\beta_1$* 
+The average MSE is extremely inaccurate as a estimator for $\sigma^2$, which is not surprising since we are violating one of the assumptions about the error term.  
+
+*P-values for $\beta_0$ and $\beta_1$*  
+The coefficient for the intercept was found to insignificant quite often, especially when the variance had an exponential relationship with the predictor. When the variance had a polynomial relationship with the predictor, the intercept was always found to be significant when the sample size was large. The coefficient of the predictor was found to be insignificant less often than the intercept but often enough to suggest that the fitted linear model is not an accurate representation of the true model.  
+
 
 ## PART E
 TODO write interpretation
@@ -851,21 +860,20 @@ corr_error_results_l <- rbind(small_samp = corr_error_small_results_l[[1]],
                              large_samp = corr_error_large_results_l[[1]])
 corr_error_results_l
 ```
-
 I compared different sample sizes with different values of Rho, the level of correlation in the error terms. After running the simulations, several tasks were violated. Most notably, the value of the average MSE, which estimates the variance, in each case was greater than the true value of $\sigma^2$= 4. When Rho = .9, the average MSE was far greater and although not by much, when Rho =.2 the average MSE was greater as well. In the case where Rho was set to .9, the true value of $\hat{y}$ was missing in over half of the simulations' confidence intervals. Similarly, the ratio of simulations that failed to capture the true intercept was greater than 30% at each sample size level. Another violation appeared in the ratio of simulations that found the intercept to be insignificant, in the small and medium sample sizes this condition was violated over 39% of the time. Despite these violations, the ratio of simulations that failed to include the true value of $\beta_{1}$ was very low, less than 10%. In addition, none of the simulations considered $\beta_{1}$ to be insignificant. Strangely, the simulations with a value of Rho = .2 and a small sample size failed to capture the true $\beta_{0}$ over 70% of the time.
 
 ## PART E
 ```{r correlated_error_random_sim}
 #randomly select a value of rho equal to .7 or 0 from a large sample size
-# rho_vec <- c(0.7,0.0)
-# random_error_large_results_h <-run_simulations(num_runs,
-#                                     n_large, 
-#                                     num_new_obsv, 
-#                                     violation =  "Correlated Errors", 
-#                                     violation_func = sample(rho_vec,1), 
-#                                     num_predictors, 
-#                                     sigma_sq)
-# 
+rho_vec <- c(0.7,0.0)
+n <- sample(20:5000, 1)
+random_results_4 <-run_simulations(num_runs = 1,
+                                    n,
+                                    num_new_obsv,
+                                    violation =  "Correlated Errors",
+                                    violation_func = sample(rho_vec,1),
+                                    num_predictors,
+                                    sigma_sq)
 
 ```
 
@@ -974,8 +982,20 @@ multicolinearity_poly_results <- rbind(small_samp = multicolinearity_poly_small_
                              large_samp = multicolinearity_poly_large_results[[1]])
 multicolinearity_poly_results
 ```
+*Prediction confidence intervals*  
+The confidence intervals for the predictions performed as expected when no assumptions are violated, where the expected value of Y based on the true model was captured within the confidence interval about 95% of the time.  
 
+*Confidence interval for $\beta_0$*  
+The confidence intervals for the intercept performed as expected when no assumptions are violated, where the true value of the intercept was captured within the confidence interval about 95% of the time.  
 
+*Confidence inverval for $\beta_1$*  
+The confidence intervals for $\beta_1$ performed as expected when no assumptions are violated, where the true value of $\beta_1$ was captured within the confidence interval about 95% of the time.  
+
+*Average MSE*  
+Of all the simulations run, these had the best behaved values for the MSE, where the average MSE of all the simulations was approximately the true value of $\sigma^2 = 4.$
+
+*P-values for $\beta_0$ and $\beta_1$* 
+The simulations where X2 was simply X1 with some random noise added, always found both the intercept and $\beta_1$ to be significant, regardless of sample size.  The simulation where X2 had some polynomial relationship with X1, the intercept was often found to be ingsignificant and occasionally $\beta_1$ was also found to be insignificant. However, both of those rates went to zero as sample size increased.  
 ## PART E
 TODO write interpretation
 ```{r multicolinearity_random_sim}
