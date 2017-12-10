@@ -189,9 +189,31 @@ plot_diagnostics <- function(payload) {
   # unpack payload
   list2env(payload, envir=environment())
   
-   # TODO check dims of X to make sure that we don't get errors inc ase of multicollinearity (more than one predictor var)
-  # TODO if so, call pairs()
   
+#multicollinearity case, check for multiple X variables
+  if(num_predictors > 1){
+    
+  multivariate_dataframe <- as.data.frame(cbind(X, Y))
+  colnames(multivariate_dataframe) <- c("X1", "X2", "Y")
+  multivariate_lm_model <- lm(Y~., data = multivariate_dataframe)
+    
+  writeLines("Diagnostic #1: Is the Regression Function Linear? ")
+  plot(multivariate_lm_model, which = 1, caption = "Residuals vs Fitted")
+  
+    writeLines("Diagnostic #2: Do the Residuals Have Constant Variance?\n\n Does the plot appear to be a general cloud of points or is there a megaphone shape?")
+  plot(lm_model, which = 1) 
+  
+    writeLines("Diagnostic #3: Are the Residuals Normally Distributed?")
+  plot(lm_model, which = 2)
+  
+  writeLines("Diagnostic #4: Are the Residuals Independent?")  
+  plot(1:length(X), residuals(lm_model))
+  writeLines("Diagnostic #5: Is there Evidence of Multicollinearity?")
+  pairs(multivariate_dataframe)
+  }
+
+
+#univariate case  
   writeLines("Diagnostic #1: Is the Regression Function Linear? ")
   plot(Y ~ X)
   abline(lm_model)
@@ -204,18 +226,6 @@ plot_diagnostics <- function(payload) {
   
   writeLines("Diagnostic #4: Are the Residuals Independent?")  
   plot(1:length(X), residuals(lm_model))
-  
-  if(num_predictors > 1){
-    
-      multivariate_dataframe <- as.data.frame(cbind(X, Y))
-  colnames(multivariate_dataframe) <- c("X1", "X2", "Y")
-multivariate_lm_model <- lm(Y~., data = multivariate_dataframe)
-    
-    
-    
-    writeLines("Diagnostic #5: Is there Evidence of Multicollinearity?")
-    pairs(multivariate_dataframe)
-  }
 
 }
 
@@ -236,43 +246,54 @@ advanced_diagnostics <- function(payload) {
   # unpack payload
   list2env(payload, envir=environment())
   
+  #check for multivariate case
+  if(num_predictors > 1){
+    multivariate_dataframe <- as.data.frame(cbind(X, Y))
+    colnames(multivariate_dataframe) <- c("X1", "X2", "Y")
+    multivariate_lm_model <- lm(Y~., data = multivariate_dataframe)
+    
+    #constant var
+     writeLines("Diagnostic #2: Do the Residuals Have Constant Variance?\n\n Does the plot appear to be a general cloud of points or is there a megaphone shape?")
+    writeLines("Large values of the test statistic lead to us rejecting H0 and concluding that we have nonconstant variance (ie heteroskedacity).")
+    print(bptest(multivariate_lm_model))
+    
+    #residuals nonnormal
+    writeLines("Diagnostic #3: Are the Residuals Normally Distributed?")
+    # plot(lm_model, which = 2)
+    print(shapiro.test(residuals(multivariate_lm_model)))
+
+    #multicollinearity
+    writeLines("Diagnostic #5: Is there Evidence of Multicollinearity?")  
+    writeLines("Here are some rough guidelines:
+    VIF_j≈1: no evidence of multicollinearity for x_j
+    1<VIF_j<5: evidence of moderate multicollinearity for x_j
+    5≤VIF_j<10: evidence of strong multicollinearity for x_j
+    VIF_j≥10 evidence of severe multicollinearity for x_j, will almost certainly cause problems")
+    print(vif(multivariate_lm_model))
+  }
+  
+  
+  #bivariate case  
+
+  # linearity
   # writeLines("Diagnostic #1: Is the Regression Function Linear? ")
   # print(anova(lm_model))
   
+  # constant bariance
   writeLines("Diagnostic #2: Do the Residuals Have Constant Variance?\n\n Does the plot appear to be a general cloud of points or is there a megaphone shape?")
 
+# heteroskedacity
   writeLines("Large values of the test statistic lead to us rejecting H0 and concluding that we have nonconstant variance (ie heteroskedacity).")
-  
-  
   print(bptest(Y ~ X))
   
+
+  #normally dist residuals
   writeLines("Diagnostic #3: Are the Residuals Normally Distributed?")
   # plot(lm_model, which = 2)
   print(shapiro.test(residuals(lm_model)))
 
-  
-  if(num_predictors > 1){
-  writeLines("Diagnostic #5: Is there Evidence of Multicollinearity?")  
-  writeLines("Here are some rough guidelines:
-  VIF_j≈1: no evidence of multicollinearity for x_j
-  1<VIF_j<5: evidence of moderate multicollinearity for x_j
-  5≤VIF_j<10: evidence of strong multicollinearity for x_j
-  VIF_j≥10 evidence of severe multicollinearity for x_j, will almost certainly cause problems")
-  
-
-  multivariate_dataframe <- as.data.frame(cbind(X, Y))
-  colnames(multivariate_dataframe) <- c("X1", "X2", "Y")
-multivariate_lm_model <- lm(Y~., data = multivariate_dataframe)
-
-
-  print(vif(multivariate_lm_model))
-  }
-
-  
-
 }
 
-```
 
 
 # Questions
